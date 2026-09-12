@@ -18,6 +18,14 @@ function createTextElement(tag, className, text) {
   return element;
 }
 
+function applySystemAccent() {
+  const accent = /^#[0-9a-f]{6}$/i.test(currentState.systemAccent || '') ? currentState.systemAccent : '#60CDFF';
+  const channels = [1, 3, 5].map((offset) => Number.parseInt(accent.slice(offset, offset + 2), 16) / 255);
+  const luminance = channels.reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+  document.documentElement.style.setProperty('--accent', accent);
+  document.documentElement.style.setProperty('--accent-foreground', luminance > .56 ? '#111111' : '#FFFFFF');
+}
+
 function meterClass(remaining, settings) {
   if (remaining === 0) return ' is-empty';
   if (settings.taskbar.lowRemainingAlert && remaining <= 5) return ' is-critical';
@@ -156,6 +164,7 @@ function setSnapshot(key, settings) {
 function render() {
   if (!currentState) return;
   const settings = currentState.settings;
+  applySystemAccent();
   renderStatus();
   renderAccount();
 
@@ -196,6 +205,7 @@ function render() {
 
 function settingsFromForm() {
   return {
+    paletteVersion: currentState.settings.paletteVersion,
     displayLocation: document.querySelector('input[name="display-location"]:checked').value,
     alwaysShowTrayIcon: $('#always-show-tray-icon').checked,
     indicators: {

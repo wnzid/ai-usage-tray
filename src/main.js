@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, Tray } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, systemPreferences, Tray } = require('electron');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -39,6 +39,7 @@ let quitting = false;
 let taskbarAttachment = 'off';
 let taskbarPlacement = null;
 let taskbarAttachRunning = false;
+let systemAccent = '#60CDFF';
 const trays = new Map();
 const trayFingerprints = new Map();
 
@@ -57,7 +58,25 @@ let usage = isDemo
 let lastError = null;
 
 function publicState() {
-  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment, taskbarPlacement };
+  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment, taskbarPlacement, systemAccent };
+}
+
+function readSystemAccent(value) {
+  try {
+    const accent = value || systemPreferences.getAccentColor();
+    return typeof accent === 'string' && /^[0-9a-f]{8}$/i.test(accent) ? `#${accent.slice(0, 6)}` : '#60CDFF';
+  } catch {
+    return '#60CDFF';
+  }
+}
+
+function updateSettingsWindowChrome() {
+  if (!settingsWindow || settingsWindow.isDestroyed()) return;
+  settingsWindow.setTitleBarOverlay({
+    color: '#00000000',
+    symbolColor: nativeTheme.shouldUseDarkColors ? '#FFFFFF' : '#000000',
+    height: 48,
+  });
 }
 
 function broadcast() {
@@ -169,7 +188,7 @@ function makeTray(key, item, center, connected) {
     && (item?.remainingPercent ?? 100) > 0
     && (item?.remainingPercent ?? 100) <= 5;
   const fingerprint = isAppIcon
-    ? 'almond-heart-v1'
+    ? 'aiu-wordmark-v2'
     : JSON.stringify([Math.round(item?.remainingPercent ?? 0), center, indicator?.color, critical, connected, nativeTheme.shouldUseDarkColors]);
   let tray = trays.get(key);
   if (tray && trayFingerprints.get(key) === fingerprint) {
@@ -365,11 +384,19 @@ function createWindow(html, options) {
 function createSettingsWindow() {
   settingsWindow = createWindow('settings.html', {
     title: 'AI Usage Tray',
-    width: 880,
+    width: 900,
     height: 760,
-    minWidth: 720,
-    minHeight: 620,
+    minWidth: 760,
+    minHeight: 680,
     autoHideMenuBar: true,
+    backgroundColor: '#00000000',
+    backgroundMaterial: 'mica',
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#00000000',
+      symbolColor: nativeTheme.shouldUseDarkColors ? '#FFFFFF' : '#000000',
+      height: 48,
+    },
   });
   settingsWindow.on('close', (event) => {
     if (!quitting) {
@@ -400,6 +427,8 @@ function createDetailsWindow() {
     alwaysOnTop: true,
     skipTaskbar: true,
     roundedCorners: true,
+    backgroundColor: '#00000000',
+    backgroundMaterial: 'acrylic',
   });
   detailsWindow.on('blur', hideDetails);
   detailsWindow.on('closed', () => { detailsWindow = null; });
@@ -479,6 +508,7 @@ if (!hasLock) {
   app.on('second-instance', openSettings);
   app.whenReady().then(() => {
     Menu.setApplicationMenu(null);
+    systemAccent = readSystemAccent();
     settingsStore = new SettingsStore(app.getPath('userData'));
     codex = new CodexClient(app);
     codex.on('notification', (message) => {
@@ -505,7 +535,11 @@ if (!hasLock) {
       rebuildTaskbarWidget();
     }
     refreshUsage();
-    nativeTheme.on('updated', () => { rebuildTrays(); broadcast(); });
+    nativeTheme.on('updated', () => { updateSettingsWindowChrome(); rebuildTrays(); broadcast(); });
+    systemPreferences.on('accent-color-changed', (_event, color) => {
+      systemAccent = readSystemAccent(color);
+      broadcast();
+    });
     screen.on('display-metrics-changed', attachTaskbarWidget);
   });
 }

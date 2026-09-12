@@ -119,7 +119,7 @@ function drawPercentage(png, remaining, foreground) {
 function createGaugeBuffer({ app, remaining = 0, center = 'logo', color, critical = false, dark = true, connected = true, size = 32 }) {
   const png = new PNG({ width: size, height: size, colorType: 6 });
   const chosen = typeof color === 'string' && /^#[0-9a-f]{6}$/i.test(color) ? color : (dark ? '#ffffff' : '#111111');
-  const foreground = rgba(connected ? (critical ? '#FF665E' : chosen) : (dark ? '#737373' : '#8a8a8a'));
+  const foreground = rgba(connected ? (critical ? '#FF626C' : chosen) : (dark ? '#737373' : '#8a8a8a'));
   const track = rgba(dark ? '#ffffff' : '#111111', 48);
   const value = Math.max(0, Math.min(100, Number(remaining) || 0));
   drawRing(png, value, foreground, track);

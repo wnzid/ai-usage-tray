@@ -2,11 +2,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const DEFAULT_SETTINGS = Object.freeze({
+  paletteVersion: 2,
   displayLocation: 'taskbar',
   alwaysShowTrayIcon: true,
   indicators: {
-    fiveHour: { enabled: true, center: 'logo', color: '#F6D6B8' },
-    weekly: { enabled: true, center: 'percentage', color: '#E5A878' },
+    fiveHour: { enabled: true, center: 'logo', color: '#8EA2FF' },
+    weekly: { enabled: true, center: 'percentage', color: '#D8DCE7' },
   },
   refreshMinutes: 2,
   launchAtLogin: false,
@@ -27,11 +28,11 @@ function color(value, fallback) {
   return typeof value === 'string' && /^#[0-9a-f]{6}$/i.test(value) ? value.toUpperCase() : fallback;
 }
 
-function indicator(value, fallback) {
+function indicator(value, fallback, resetLegacyColor = false) {
   return {
     enabled: typeof value?.enabled === 'boolean' ? value.enabled : fallback.enabled,
     center: value?.center === 'percentage' || value?.center === 'logo' ? value.center : fallback.center,
-    color: color(value?.color, fallback.color),
+    color: resetLegacyColor ? fallback.color : color(value?.color, fallback.color),
   };
 }
 
@@ -41,7 +42,9 @@ function sanitizeSettings(value = {}) {
   const positions = ['start', 'center', 'end'];
   const layouts = ['gauges', 'compact', 'bars'];
   const backgrounds = ['none', 'subtle', 'solid'];
+  const resetLegacyColors = value.paletteVersion !== DEFAULT_SETTINGS.paletteVersion;
   return {
+    paletteVersion: DEFAULT_SETTINGS.paletteVersion,
     displayLocation: displayLocations.includes(value.displayLocation)
       ? value.displayLocation
       : DEFAULT_SETTINGS.displayLocation,
@@ -49,8 +52,8 @@ function sanitizeSettings(value = {}) {
       ? value.alwaysShowTrayIcon
       : DEFAULT_SETTINGS.alwaysShowTrayIcon,
     indicators: {
-      fiveHour: indicator(value.indicators?.fiveHour, DEFAULT_SETTINGS.indicators.fiveHour),
-      weekly: indicator(value.indicators?.weekly, DEFAULT_SETTINGS.indicators.weekly),
+      fiveHour: indicator(value.indicators?.fiveHour, DEFAULT_SETTINGS.indicators.fiveHour, resetLegacyColors),
+      weekly: indicator(value.indicators?.weekly, DEFAULT_SETTINGS.indicators.weekly, resetLegacyColors),
     },
     refreshMinutes: allowedRefresh.includes(Number(value.refreshMinutes))
       ? Number(value.refreshMinutes)

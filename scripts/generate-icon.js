@@ -4,8 +4,8 @@ const { PNG } = require('pngjs');
 
 const size = 512;
 const png = new PNG({ width: size, height: size, colorType: 6 });
-const almond = [238, 211, 186, 255];
-const ink = [33, 25, 21, 255];
+const graphite = [17, 19, 25, 255];
+const ink = [245, 247, 251, 255];
 
 function setPixel(x, y, color, coverage = 1) {
   const index = (y * size + x) * 4;
@@ -49,7 +49,7 @@ for (let y = 0; y < size; y += 1) {
   for (let x = 0; x < size; x += 1) {
     const square = roundedSquareCoverage(x + .5, y + .5);
     if (!square) continue;
-    setPixel(x, y, almond, square);
+    setPixel(x, y, graphite, square);
 
     let letterSamples = 0;
     for (const offsetY of [.125, .375, .625, .875]) {

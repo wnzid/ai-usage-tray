@@ -19,7 +19,7 @@ function usageRow(key) {
   const row = document.createElement('article');
   const critical = state.settings.taskbar.lowRemainingAlert && remaining > 0 && remaining <= 5;
   row.className = `usage-row${critical ? ' critical' : ''}${remaining === 0 ? ' empty' : ''}`;
-  row.style.setProperty('--meter-color', critical || remaining === 0 ? '#FF665E' : config.color);
+  row.style.setProperty('--meter-color', critical || remaining === 0 ? '#FF626C' : config.color);
   const gauge = document.createElement('div');
   gauge.className = 'gauge';
   gauge.style.setProperty('--value', remaining);

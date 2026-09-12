@@ -46,6 +46,7 @@ test('clamps malformed usage percentages', () => {
 
 test('sanitizes settings and preserves safe choices', () => {
   const value = sanitizeSettings({
+    paletteVersion: 2,
     indicators: {
       fiveHour: { enabled: false, center: 'percentage', color: '#123456' },
       weekly: { enabled: true, center: 'anything', color: 'unsafe' },
@@ -55,11 +56,12 @@ test('sanitizes settings and preserves safe choices', () => {
   });
 
   assert.deepEqual(value, {
+    paletteVersion: 2,
     displayLocation: 'taskbar',
     alwaysShowTrayIcon: true,
     indicators: {
       fiveHour: { enabled: false, center: 'percentage', color: '#123456' },
-      weekly: { enabled: true, center: 'percentage', color: '#E5A878' },
+      weekly: { enabled: true, center: 'percentage', color: '#D8DCE7' },
     },
     refreshMinutes: 15,
     launchAtLogin: true,
@@ -83,6 +85,18 @@ test('uses the intended default center displays', () => {
   assert.equal(value.indicators.weekly.center, 'percentage');
   assert.equal(value.displayLocation, 'taskbar');
   assert.equal(value.taskbar.position, 'start');
+});
+
+test('migrates the former warm palette to the graphite defaults', () => {
+  const value = sanitizeSettings({
+    indicators: {
+      fiveHour: { color: '#F6D6B8' },
+      weekly: { color: '#E5A878' },
+    },
+  });
+  assert.equal(value.paletteVersion, 2);
+  assert.equal(value.indicators.fiveHour.color, '#8EA2FF');
+  assert.equal(value.indicators.weekly.color, '#D8DCE7');
 });
 
 test('sanitizes taskbar customization controls', () => {
