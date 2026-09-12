@@ -8,95 +8,110 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body class="settings-page">
-    <main class="settings-shell">
-      <header class="topbar">
-        <div class="app-mark" aria-hidden="true"></div>
-        <div class="title-block"><h1>Usage Tray</h1><span>ChatGPT / Codex</span></div>
-        <div class="topbar-account"><span id="account-name">Checking account…</span><small id="account-plan">Connecting through Codex</small></div>
+    <div class="app-shell">
+      <header class="titlebar">
+        <div class="titlebar-brand"><div class="app-mark" aria-hidden="true"></div><strong>AI Usage Tray</strong></div>
+        <div class="titlebar-account"><span id="account-name">Checking account…</span><small id="account-plan">Connecting through Codex</small></div>
         <span class="status-pill" id="status-pill"><i></i><span>Connecting</span></span>
         <button class="icon-action" id="refresh-button" title="Refresh usage" aria-label="Refresh usage">↻</button>
         <button class="button primary hidden" id="signin-button">Sign in</button>
       </header>
 
-      <section class="preview-panel surface">
-        <div class="preview-copy">
-          <span class="kicker">Preview</span>
-          <h2>At a glance</h2>
-          <p>Left-click for details. Right-click for settings.</p>
-          <div class="taskbar-attach-state" id="taskbar-attach-state"><i></i><span>Preparing taskbar widget</span></div>
-        </div>
-        <div class="taskbar-stage" aria-label="Taskbar placement preview">
-          <div class="mock-start-button"><i></i><i></i><i></i><i></i></div>
-          <div class="mock-apps"><i></i><i></i></div>
-          <div class="taskbar-preview-widget" id="taskbar-preview-widget"></div>
-          <div class="mock-tray">⌃　▰　12:42</div>
-        </div>
-        <div class="snapshot">
-          <div class="snapshot-row" id="preview-five"><span class="snapshot-dot"></span><div><strong>5-hour</strong><small>Short window</small></div><b class="preview-value">—</b></div>
-          <div class="snapshot-row" id="preview-weekly"><span class="snapshot-dot"></span><div><strong>Weekly</strong><small>Long window</small></div><b class="preview-value">—</b></div>
-        </div>
-      </section>
+      <aside class="sidebar" aria-label="Settings navigation">
+        <nav class="navigation">
+          <button class="nav-item active" type="button" data-page="overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2v8.3H15v-6h-6v6H3.5z"/></svg><span>Overview</span>
+          </button>
+          <button class="nav-item" type="button" data-page="taskbar">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15h18M8 17h.01M11 17h.01"/></svg><span>Taskbar widget</span>
+          </button>
+          <button class="nav-item" type="button" data-page="meters">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4v8l5 3"/></svg><span>Usage meters</span>
+          </button>
+          <button class="nav-item" type="button" data-page="preferences">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg><span>Preferences</span>
+          </button>
+        </nav>
+        <div class="sidebar-footer"><span class="sidebar-version">Preview build</span><span>ChatGPT / Codex</span></div>
+      </aside>
 
-      <section class="config-surface surface">
-        <div class="config-grid">
-          <section class="config-section placement-section">
-            <div class="section-title"><div><span class="kicker">Layout</span><h2>Placement & style</h2></div></div>
-            <fieldset class="flat-fieldset">
-              <div class="segments three-segments location-segments">
-                <label><input type="radio" name="display-location" value="taskbar" /><span>Taskbar</span></label>
-                <label><input type="radio" name="display-location" value="tray" /><span>Tray</span></label>
-                <label><input type="radio" name="display-location" value="both" /><span>Both</span></label>
+      <main class="page-region">
+        <section class="page active" data-page-content="overview">
+          <div class="page-heading"><div><h1>Overview</h1><p>Your AI allowance and widget status at a glance.</p></div></div>
+          <div class="dashboard-grid">
+            <section class="card usage-card">
+              <div class="card-heading"><div><span class="eyebrow">Current allowance</span><h2>Usage remaining</h2></div><span class="live-label"><i></i>Live</span></div>
+              <div class="snapshot dashboard-snapshot">
+                <div class="snapshot-row" id="preview-five"><span class="snapshot-dot"></span><div><strong>5-hour window</strong><small>Short-term allowance</small></div><b class="preview-value">—</b></div>
+                <div class="snapshot-row" id="preview-weekly"><span class="snapshot-dot"></span><div><strong>Weekly window</strong><small>Long-term allowance</small></div><b class="preview-value">—</b></div>
               </div>
-            </fieldset>
-            <div class="taskbar-options" id="taskbar-options">
-              <div class="control-grid three-up">
-                <label class="select-control"><span>Position</span><select id="taskbar-position"><option value="start">Start</option><option value="center">Center</option><option value="end">End</option></select></label>
-                <label class="select-control"><span>Meter</span><select id="taskbar-layout"><option value="gauges">Gauges</option><option value="compact">Numbers</option><option value="bars">Progress bars</option></select></label>
-                <label class="select-control"><span>Surface</span><select id="taskbar-background"><option value="none">None</option><option value="subtle">Glass</option><option value="solid">Solid</option></select></label>
-              </div>
-              <div class="slider-grid">
-                <label class="slider-control"><span>Widget <output id="taskbar-size-value">34 px</output></span><input type="range" id="taskbar-size" min="24" max="44" step="1" /></label>
-                <label class="slider-control"><span>Text <output id="taskbar-font-size-value">10 px</output></span><input type="range" id="taskbar-font-size" min="8" max="16" step="1" /></label>
-                <label class="slider-control wide"><span>Offset <output id="taskbar-offset-value">0 px</output></span><input type="range" id="taskbar-offset" min="-240" max="240" step="4" /></label>
-              </div>
-            </div>
-          </section>
-
-          <section class="config-section meters-section">
-            <div class="section-title"><div><span class="kicker">Meters</span><h2>Usage windows</h2></div><span class="section-note">Click a dot to recolor</span></div>
-            <article class="meter-row" id="fiveHour-card">
-              <span class="window-badge">5H</span>
-              <div class="meter-name"><strong>5-hour limit</strong><small>Fast allowance</small></div>
-              <label class="color-control" title="5-hour color"><input type="color" id="fiveHour-color" value="#8EA2FF" /><span></span></label>
-              <div class="segments mini-segments"><label><input type="radio" name="fiveHour-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="fiveHour-center" value="percentage" /><span>%</span></label></div>
-              <label class="switch" title="Show 5-hour limit"><input type="checkbox" id="fiveHour-enabled" /><span></span></label>
-            </article>
-            <article class="meter-row" id="weekly-card">
-              <span class="window-badge neutral">7D</span>
-              <div class="meter-name"><strong>Weekly limit</strong><small>Long allowance</small></div>
-              <label class="color-control" title="Weekly color"><input type="color" id="weekly-color" value="#D8DCE7" /><span></span></label>
-              <div class="segments mini-segments"><label><input type="radio" name="weekly-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="weekly-center" value="percentage" /><span>%</span></label></div>
-              <label class="switch" title="Show weekly limit"><input type="checkbox" id="weekly-enabled" /><span></span></label>
-            </article>
-          </section>
-        </div>
-
-        <section class="behavior-section">
-          <div class="section-title"><div><span class="kicker">Behavior</span><h2>Quick preferences</h2></div></div>
-          <div class="toggle-grid">
-            <label class="toggle-row"><span><strong>Labels</strong><small>Show 5H and 7D</small></span><span class="switch"><input type="checkbox" id="taskbar-labels" /><span></span></span></label>
-            <label class="toggle-row"><span><strong>Tray icon</strong><small>Always keep quick access</small></span><span class="switch"><input type="checkbox" id="always-show-tray-icon" /><span></span></span></label>
-            <label class="toggle-row"><span><strong>Low warning</strong><small>Red at 5% remaining</small></span><span class="switch"><input type="checkbox" id="low-remaining-alert" /><span></span></span></label>
-            <label class="toggle-row"><span><strong>Breathing</strong><small>Pulse when usage is low</small></span><span class="switch"><input type="checkbox" id="breathing-effect" /><span></span></span></label>
+            </section>
+            <section class="card widget-card">
+              <div class="card-heading"><div><span class="eyebrow">Windows integration</span><h2>Taskbar widget</h2></div></div>
+              <div class="widget-illustration"><span class="widget-glyph">AIU</span><span>Always available at a glance</span></div>
+              <div class="taskbar-attach-state" id="taskbar-attach-state"><i></i><span>Preparing taskbar widget</span></div>
+              <button class="text-button" type="button" data-navigate="taskbar">Configure widget <span>›</span></button>
+            </section>
           </div>
-          <div class="footer-controls">
-            <label class="select-control refresh-control"><span>Refresh rate</span><select id="refresh-minutes"><option value="1">Every minute</option><option value="2">Every 2 min</option><option value="5">Every 5 min</option><option value="15">Every 15 min</option></select></label>
-            <label class="inline-check"><input type="checkbox" id="launch-at-login" /><span>Start with Windows</span></label>
-            <p>Closing this window keeps the widget running.</p>
+          <h2 class="section-heading">Settings</h2>
+          <div class="shortcut-grid">
+            <button class="shortcut-card" type="button" data-navigate="taskbar"><span class="shortcut-icon">▰</span><span><strong>Taskbar widget</strong><small>Position, layout, size and surface</small></span><b>›</b></button>
+            <button class="shortcut-card" type="button" data-navigate="meters"><span class="shortcut-icon ring-icon"></span><span><strong>Usage meters</strong><small>Windows, colors and center display</small></span><b>›</b></button>
+            <button class="shortcut-card" type="button" data-navigate="preferences"><span class="shortcut-icon">⚙</span><span><strong>Preferences</strong><small>Warnings, startup and refresh</small></span><b>›</b></button>
           </div>
         </section>
-      </section>
-    </main>
+
+        <section class="page" data-page-content="taskbar">
+          <div class="page-heading"><div><h1>Taskbar widget</h1><p>Choose where the widget appears and how much space it uses.</p></div></div>
+          <section class="card preview-card">
+            <div class="card-heading"><div><span class="eyebrow">Live preview</span><h2>Your taskbar</h2></div><span class="section-note">Updates as you make changes</span></div>
+            <div class="taskbar-stage" aria-label="Taskbar placement preview"><div class="mock-start-button"><i></i><i></i><i></i><i></i></div><div class="mock-apps"><i></i><i></i></div><div class="taskbar-preview-widget" id="taskbar-preview-widget"></div><div class="mock-tray">⌃　▰　12:42</div></div>
+          </section>
+          <section class="settings-group">
+            <div class="group-heading"><h2>Placement and appearance</h2><p>Changes are saved automatically.</p></div>
+            <div class="setting-row location-row"><div class="setting-copy"><strong>Show widget in</strong><small>Keep it in the taskbar, notification area, or both.</small></div><fieldset class="flat-fieldset"><div class="segments three-segments location-segments"><label><input type="radio" name="display-location" value="taskbar" /><span>Taskbar</span></label><label><input type="radio" name="display-location" value="tray" /><span>Tray</span></label><label><input type="radio" name="display-location" value="both" /><span>Both</span></label></div></fieldset></div>
+            <div class="taskbar-options" id="taskbar-options">
+              <div class="setting-row"><div class="setting-copy"><strong>Position</strong><small>Place the widget beside a safe taskbar region.</small></div><label class="select-control row-control"><select id="taskbar-position"><option value="start">Start</option><option value="center">Center</option><option value="end">End</option></select></label></div>
+              <div class="setting-row"><div class="setting-copy"><strong>Meter style</strong><small>Choose gauges, compact numbers, or progress bars.</small></div><label class="select-control row-control"><select id="taskbar-layout"><option value="gauges">Gauges</option><option value="compact">Numbers</option><option value="bars">Progress bars</option></select></label></div>
+              <div class="setting-row"><div class="setting-copy"><strong>Surface</strong><small>Add contrast when your taskbar background needs it.</small></div><label class="select-control row-control"><select id="taskbar-background"><option value="none">None</option><option value="subtle">Glass</option><option value="solid">Solid</option></select></label></div>
+            </div>
+          </section>
+          <section class="settings-group">
+            <div class="group-heading"><h2>Size and spacing</h2></div>
+            <div class="setting-row slider-row"><div class="setting-copy"><strong>Widget size</strong><small>Overall height of the taskbar display.</small></div><label class="slider-control row-slider"><input type="range" id="taskbar-size" min="24" max="44" step="1" /><output id="taskbar-size-value">34 px</output></label></div>
+            <div class="setting-row slider-row"><div class="setting-copy"><strong>Text size</strong><small>Percentage and label size.</small></div><label class="slider-control row-slider"><input type="range" id="taskbar-font-size" min="8" max="16" step="1" /><output id="taskbar-font-size-value">10 px</output></label></div>
+            <div class="setting-row slider-row"><div class="setting-copy"><strong>Position offset</strong><small>Fine-tune the widget around other taskbar tools.</small></div><label class="slider-control row-slider"><input type="range" id="taskbar-offset" min="-240" max="240" step="4" /><output id="taskbar-offset-value">0 px</output></label></div>
+          </section>
+        </section>
+
+        <section class="page" data-page-content="meters">
+          <div class="page-heading"><div><h1>Usage meters</h1><p>Choose which allowances appear and how each one looks.</p></div></div>
+          <section class="settings-group meter-settings-group">
+            <div class="group-heading"><h2>Visible windows</h2><p>Select the color dot to customize each meter.</p></div>
+            <article class="meter-setting" id="fiveHour-card"><span class="window-badge">5H</span><div class="meter-name"><strong>5-hour limit</strong><small>Fast allowance</small></div><label class="color-control" title="5-hour color"><input type="color" id="fiveHour-color" value="#8EA2FF" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="fiveHour-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="fiveHour-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show 5-hour limit"><input type="checkbox" id="fiveHour-enabled" /><span></span></label></article>
+            <article class="meter-setting" id="weekly-card"><span class="window-badge neutral">7D</span><div class="meter-name"><strong>Weekly limit</strong><small>Long allowance</small></div><label class="color-control" title="Weekly color"><input type="color" id="weekly-color" value="#D8DCE7" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="weekly-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="weekly-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show weekly limit"><input type="checkbox" id="weekly-enabled" /><span></span></label></article>
+          </section>
+          <section class="info-card"><span class="info-icon">i</span><div><strong>Remaining, not used</strong><p>The ring and percentage decrease as allowance is consumed, so a full meter means all usage remains.</p></div></section>
+        </section>
+
+        <section class="page" data-page-content="preferences">
+          <div class="page-heading"><div><h1>Preferences</h1><p>Control labels, alerts, refresh behavior, and Windows startup.</p></div></div>
+          <section class="settings-group">
+            <div class="group-heading"><h2>Widget behavior</h2></div>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Show labels</strong><small>Display 5H and 7D beside the values.</small></div><span class="switch"><input type="checkbox" id="taskbar-labels" /><span></span></span></label>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Always show tray icon</strong><small>Keep an AIU shortcut in the notification area.</small></div><span class="switch"><input type="checkbox" id="always-show-tray-icon" /><span></span></span></label>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Low-remaining warning</strong><small>Turn the meter red when 5% or less remains.</small></div><span class="switch"><input type="checkbox" id="low-remaining-alert" /><span></span></span></label>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Breathing warning</strong><small>Gently pulse a meter while usage is critically low.</small></div><span class="switch"><input type="checkbox" id="breathing-effect" /><span></span></span></label>
+          </section>
+          <section class="settings-group">
+            <div class="group-heading"><h2>App behavior</h2></div>
+            <div class="setting-row"><div class="setting-copy"><strong>Refresh usage</strong><small>How often AI Usage Tray checks for changes.</small></div><label class="select-control row-control"><select id="refresh-minutes"><option value="1">Every minute</option><option value="2">Every 2 minutes</option><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option></select></label></div>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Start with Windows</strong><small>Launch quietly after you sign in.</small></div><span class="switch"><input type="checkbox" id="launch-at-login" /><span></span></span></label>
+          </section>
+          <p class="closing-note">Closing this window keeps the widget running. Use the tray menu to quit.</p>
+        </section>
+      </main>
+    </div>
     <script src="settings.js"></script>
   </body>
 </html>

@@ -10,6 +10,10 @@ const { createGaugeImage } = require('./tray-gauge');
 const isDemo = process.argv.includes('--demo');
 const captureArgument = process.argv.find((argument) => argument.startsWith('--capture-preview='));
 const capturePath = captureArgument?.slice('--capture-preview='.length);
+const capturePageArgument = process.argv.find((argument) => argument.startsWith('--capture-page='));
+const capturePage = ['overview', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
+  ? capturePageArgument.slice('--capture-page='.length)
+  : 'overview';
 const backgroundLaunch = process.argv.includes('--background');
 
 if (capturePath) {
@@ -384,9 +388,9 @@ function createWindow(html, options) {
 function createSettingsWindow() {
   settingsWindow = createWindow('settings.html', {
     title: 'AI Usage Tray',
-    width: 900,
+    width: 1080,
     height: 760,
-    minWidth: 760,
+    minWidth: 860,
     minHeight: 680,
     autoHideMenuBar: true,
     backgroundColor: '#00000000',
@@ -408,6 +412,7 @@ function createSettingsWindow() {
   settingsWindow.once('ready-to-show', async () => {
     if (!backgroundLaunch || capturePath) settingsWindow.show();
     if (capturePath) {
+      if (capturePage !== 'overview') await settingsWindow.webContents.executeJavaScript(`activatePage(${JSON.stringify(capturePage)})`);
       await new Promise((resolve) => setTimeout(resolve, 1200));
       const image = await settingsWindow.webContents.capturePage();
       fs.writeFileSync(capturePath, image.toPNG());

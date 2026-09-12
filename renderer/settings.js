@@ -21,9 +21,23 @@ function createTextElement(tag, className, text) {
 function applySystemAccent() {
   const accent = /^#[0-9a-f]{6}$/i.test(currentState.systemAccent || '') ? currentState.systemAccent : '#60CDFF';
   const channels = [1, 3, 5].map((offset) => Number.parseInt(accent.slice(offset, offset + 2), 16) / 255);
+  const chroma = Math.max(...channels) - Math.min(...channels);
+  if (chroma < .12) {
+    document.documentElement.style.removeProperty('--accent');
+    document.documentElement.style.removeProperty('--accent-foreground');
+    return;
+  }
   const luminance = channels.reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
   document.documentElement.style.setProperty('--accent', accent);
   document.documentElement.style.setProperty('--accent-foreground', luminance > .56 ? '#111111' : '#FFFFFF');
+}
+
+function activatePage(name) {
+  const target = document.querySelector(`[data-page-content="${name}"]`);
+  if (!target) return;
+  for (const page of document.querySelectorAll('[data-page-content]')) page.classList.toggle('active', page === target);
+  for (const item of document.querySelectorAll('[data-page]')) item.classList.toggle('active', item.dataset.page === name);
+  document.querySelector('.page-region').scrollTop = 0;
 }
 
 function meterClass(remaining, settings) {
@@ -264,6 +278,10 @@ document.addEventListener('input', (event) => {
 });
 $('#refresh-button').addEventListener('click', () => window.usageTray.refresh());
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());
+document.addEventListener('click', (event) => {
+  const navigation = event.target.closest('[data-page], [data-navigate]');
+  if (navigation) activatePage(navigation.dataset.page || navigation.dataset.navigate);
+});
 
 window.usageTray.onState((state) => { currentState = state; render(); });
 window.usageTray.getState().then((state) => { currentState = state; render(); });
