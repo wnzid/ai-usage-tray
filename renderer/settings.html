@@ -49,6 +49,73 @@
         <button class="button primary hidden" id="signin-button">Sign in</button>
       </section>
 
+      <section class="section-heading display-heading">
+        <div>
+          <h2>Where it lives</h2>
+          <p>Put usage directly on the taskbar, in the system tray, or in both.</p>
+        </div>
+      </section>
+
+      <section class="display-card card">
+        <fieldset class="location-fieldset">
+          <legend>Display location</legend>
+          <div class="segments location-segments">
+            <label><input type="radio" name="display-location" value="taskbar" /><span>Taskbar</span></label>
+            <label><input type="radio" name="display-location" value="tray" /><span>System tray</span></label>
+            <label><input type="radio" name="display-location" value="both" /><span>Both</span></label>
+          </div>
+        </fieldset>
+
+        <div class="taskbar-options" id="taskbar-options">
+          <div class="taskbar-stage" aria-label="Taskbar placement preview">
+            <div class="mock-start-button"><i></i><i></i><i></i><i></i></div>
+            <div class="taskbar-preview-widget" id="taskbar-preview-widget"></div>
+            <div class="mock-tray">⌃　▰　12:42</div>
+          </div>
+          <div class="taskbar-attach-state" id="taskbar-attach-state"><i></i><span>Preparing taskbar widget</span></div>
+
+          <div class="customization-grid">
+            <fieldset>
+              <legend>Side</legend>
+              <div class="segments three-segments">
+                <label><input type="radio" name="taskbar-position" value="start" /><span>Start</span></label>
+                <label><input type="radio" name="taskbar-position" value="center" /><span>Center</span></label>
+                <label><input type="radio" name="taskbar-position" value="end" /><span>End</span></label>
+              </div>
+            </fieldset>
+            <label class="select-control">
+              <span>Visual style</span>
+              <select id="taskbar-layout">
+                <option value="gauges">Circular gauges</option>
+                <option value="compact">Compact numbers</option>
+                <option value="bars">Progress bars</option>
+              </select>
+            </label>
+            <label class="select-control">
+              <span>Background</span>
+              <select id="taskbar-background">
+                <option value="none">Transparent</option>
+                <option value="subtle">Subtle glass</option>
+                <option value="solid">Solid</option>
+              </select>
+            </label>
+            <div class="inline-toggle-control">
+              <span><strong>Labels</strong><small>Show 5H and 7D</small></span>
+              <label class="switch"><input type="checkbox" id="taskbar-labels" /><span></span></label>
+            </div>
+          </div>
+
+          <div class="slider-control">
+            <div><span>Widget size</span><output id="taskbar-size-value">34 px</output></div>
+            <input type="range" id="taskbar-size" min="24" max="44" step="1" />
+          </div>
+          <div class="slider-control">
+            <div><span>Fine position</span><output id="taskbar-offset-value">0 px</output></div>
+            <input type="range" id="taskbar-offset" min="-240" max="240" step="4" />
+          </div>
+        </div>
+      </section>
+
       <section class="section-heading">
         <div>
           <h2>Taskbar indicators</h2>

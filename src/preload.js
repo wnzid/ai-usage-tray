@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('usageTray', {
   refresh: () => ipcRenderer.invoke('usage:refresh'),
   signIn: () => ipcRenderer.invoke('account:login'),
   openSettings: () => ipcRenderer.invoke('window:openSettings'),
+  openDetails: () => ipcRenderer.invoke('window:openDetails'),
   hideDetails: () => ipcRenderer.invoke('window:hideDetails'),
   onState: (callback) => {
     const listener = (_event, state) => callback(state);

@@ -61,10 +61,101 @@ function renderAccount() {
   }
 }
 
+function createTextElement(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+function renderTaskbarPreview(settings = currentState.settings) {
+  const preview = $('#taskbar-preview-widget');
+  const config = settings.taskbar;
+  preview.className = `taskbar-preview-widget position-${config.position} preview-background-${config.background}`;
+  preview.style.setProperty('--preview-size', `${config.size}px`);
+  preview.replaceChildren();
+
+  const enabledKeys = ['fiveHour', 'weekly'].filter((key) => settings.indicators[key].enabled);
+  if (config.layout === 'bars') {
+    const set = document.createElement('div');
+    set.className = 'preview-bar-set';
+    for (const key of enabledKeys) {
+      const remaining = Math.round(usageWindow(key)?.remainingPercent ?? 0);
+      const row = document.createElement('div');
+      row.className = 'preview-bar-row';
+      row.append(createTextElement('span', '', config.showLabels ? (key === 'fiveHour' ? '5H' : '7D') : ''));
+      const track = document.createElement('span');
+      track.className = 'preview-bar-track';
+      const fill = document.createElement('i');
+      fill.style.setProperty('--value', remaining);
+      track.append(fill);
+      row.append(track, createTextElement('strong', '', `${remaining}%`));
+      set.append(row);
+    }
+    preview.append(set);
+    return;
+  }
+
+  for (const key of enabledKeys) {
+    const remaining = Math.round(usageWindow(key)?.remainingPercent ?? 0);
+    const chip = document.createElement('div');
+    chip.className = 'preview-chip';
+    if (config.layout === 'compact') {
+      const ring = document.createElement('i');
+      ring.className = 'compact-ring';
+      ring.style.setProperty('--value', remaining);
+      chip.append(ring);
+      if (config.showLabels) chip.append(createTextElement('em', '', key === 'fiveHour' ? '5H' : '7D'));
+      chip.append(createTextElement('strong', '', `${remaining}%`));
+    } else {
+      const ring = document.createElement('span');
+      ring.className = 'preview-mini-ring';
+      ring.style.setProperty('--value', remaining);
+      const center = document.createElement('span');
+      if (settings.indicators[key].center === 'logo') center.className = 'logo-mask';
+      else center.textContent = remaining;
+      ring.append(center);
+      chip.append(ring);
+      if (config.showLabels) chip.append(createTextElement('em', '', key === 'fiveHour' ? '5H' : '7D'));
+    }
+    preview.append(chip);
+  }
+}
+
+function renderTaskbarControls() {
+  const settings = currentState.settings;
+  document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
+  document.querySelector(`input[name="taskbar-position"][value="${settings.taskbar.position}"]`).checked = true;
+  $('#taskbar-layout').value = settings.taskbar.layout;
+  $('#taskbar-background').value = settings.taskbar.background;
+  $('#taskbar-labels').checked = settings.taskbar.showLabels;
+  $('#taskbar-size').value = settings.taskbar.size;
+  $('#taskbar-offset').value = settings.taskbar.offset;
+  $('#taskbar-size-value').textContent = `${settings.taskbar.size} px`;
+  $('#taskbar-offset-value').textContent = `${settings.taskbar.offset > 0 ? '+' : ''}${settings.taskbar.offset} px`;
+  $('#taskbar-options').classList.toggle('disabled', settings.displayLocation === 'tray');
+
+  const attachment = $('#taskbar-attach-state');
+  attachment.classList.remove('attached', 'error');
+  if (settings.displayLocation === 'tray') {
+    attachment.querySelector('span').textContent = 'Taskbar widget is disabled';
+  } else if (currentState.taskbarAttachment === 'attached') {
+    attachment.classList.add('attached');
+    attachment.querySelector('span').textContent = 'Attached to the Windows taskbar';
+  } else if (currentState.taskbarAttachment === 'error') {
+    attachment.classList.add('error');
+    attachment.querySelector('span').textContent = 'Could not attach · tray fallback enabled';
+  } else {
+    attachment.querySelector('span').textContent = 'Attaching to the Windows taskbar…';
+  }
+  renderTaskbarPreview();
+}
+
 function render() {
   if (!currentState) return;
   renderStatus();
   renderAccount();
+  renderTaskbarControls();
   const settings = currentState.settings;
 
   for (const key of ['fiveHour', 'weekly']) {
@@ -83,6 +174,7 @@ function render() {
 
 function settingsFromForm() {
   return {
+    displayLocation: document.querySelector('input[name="display-location"]:checked').value,
     indicators: {
       fiveHour: {
         enabled: $('#fiveHour-enabled').checked,
@@ -95,6 +187,14 @@ function settingsFromForm() {
     },
     refreshMinutes: Number($('#refresh-minutes').value),
     launchAtLogin: $('#launch-at-login').checked,
+    taskbar: {
+      position: document.querySelector('input[name="taskbar-position"]:checked').value,
+      layout: $('#taskbar-layout').value,
+      size: Number($('#taskbar-size').value),
+      background: $('#taskbar-background').value,
+      showLabels: $('#taskbar-labels').checked,
+      offset: Number($('#taskbar-offset').value),
+    },
   };
 }
 
@@ -111,6 +211,13 @@ async function save() {
 
 document.addEventListener('change', (event) => {
   if (event.target.matches('input, select')) save();
+});
+document.addEventListener('input', (event) => {
+  if (!event.target.matches('input[type="range"]')) return;
+  $('#taskbar-size-value').textContent = `${$('#taskbar-size').value} px`;
+  const offset = Number($('#taskbar-offset').value);
+  $('#taskbar-offset-value').textContent = `${offset > 0 ? '+' : ''}${offset} px`;
+  renderTaskbarPreview(settingsFromForm());
 });
 $('#refresh-button').addEventListener('click', () => window.usageTray.refresh());
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());

@@ -55,12 +55,21 @@ test('sanitizes settings and preserves safe choices', () => {
   });
 
   assert.deepEqual(value, {
+    displayLocation: 'taskbar',
     indicators: {
       fiveHour: { enabled: false, center: 'percentage' },
       weekly: { enabled: true, center: 'percentage' },
     },
     refreshMinutes: 15,
     launchAtLogin: true,
+    taskbar: {
+      position: 'start',
+      layout: 'gauges',
+      size: 34,
+      background: 'subtle',
+      showLabels: true,
+      offset: 0,
+    },
   });
 });
 
@@ -68,4 +77,29 @@ test('uses the intended default center displays', () => {
   const value = sanitizeSettings();
   assert.equal(value.indicators.fiveHour.center, 'logo');
   assert.equal(value.indicators.weekly.center, 'percentage');
+  assert.equal(value.displayLocation, 'taskbar');
+  assert.equal(value.taskbar.position, 'start');
+});
+
+test('sanitizes taskbar customization controls', () => {
+  const value = sanitizeSettings({
+    displayLocation: 'both',
+    taskbar: {
+      position: 'end',
+      layout: 'bars',
+      size: 99,
+      background: 'solid',
+      showLabels: false,
+      offset: -999,
+    },
+  });
+  assert.equal(value.displayLocation, 'both');
+  assert.deepEqual(value.taskbar, {
+    position: 'end',
+    layout: 'bars',
+    size: 44,
+    background: 'solid',
+    showLabels: false,
+    offset: -240,
+  });
 });

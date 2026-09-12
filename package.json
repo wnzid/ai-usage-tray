@@ -29,12 +29,14 @@
     "asar": true,
     "asarUnpack": [
       "node_modules/@openai/codex/**",
-      "node_modules/@openai/codex-win32-*/**"
+      "node_modules/@openai/codex-win32-*/**",
+      "scripts/attach-taskbar.ps1"
     ],
     "files": [
       "src/**/*",
       "renderer/**/*",
       "assets/**/*",
+      "scripts/attach-taskbar.ps1",
       "package.json"
     ],
     "directories": {

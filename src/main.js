@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, Menu, nativeTheme, screen, shell, Tray } = require('electron');
+const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { CodexClient } = require('./codex-client');
@@ -15,9 +16,13 @@ let settingsStore;
 let codex;
 let settingsWindow;
 let detailsWindow;
+let taskbarWindow;
 let pollTimer;
+let taskbarAttachTimer;
 let refreshing = false;
 let quitting = false;
+let taskbarAttachment = 'off';
+let taskbarAttachRunning = false;
 const trays = new Map();
 
 let usage = isDemo
@@ -35,12 +40,12 @@ let usage = isDemo
 let lastError = null;
 
 function publicState() {
-  return { usage, settings: settingsStore.value, refreshing, error: lastError };
+  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment };
 }
 
 function broadcast() {
   const state = publicState();
-  for (const window of [settingsWindow, detailsWindow]) {
+  for (const window of [settingsWindow, detailsWindow, taskbarWindow]) {
     if (window && !window.isDestroyed()) window.webContents.send('state:changed', state);
   }
 }
@@ -86,6 +91,20 @@ function toggleDetails(tray) {
   x = Math.max(area.x + 8, Math.min(x, area.x + area.width - windowBounds.width - 8));
   y = Math.max(area.y + 8, Math.min(y, area.y + area.height - windowBounds.height - 8));
   detailsWindow.setPosition(x, y, false);
+  detailsWindow.show();
+  detailsWindow.focus();
+}
+
+function toggleDetailsAtCursor() {
+  if (!detailsWindow || detailsWindow.isDestroyed()) createDetailsWindow();
+  if (detailsWindow.isVisible()) return detailsWindow.hide();
+  const point = screen.getCursorScreenPoint();
+  const display = screen.getDisplayNearestPoint(point);
+  const windowBounds = detailsWindow.getBounds();
+  const area = display.workArea;
+  const x = Math.max(area.x + 8, Math.min(point.x - windowBounds.width / 2, area.x + area.width - windowBounds.width - 8));
+  const y = Math.max(area.y + 8, area.y + area.height - windowBounds.height - 8);
+  detailsWindow.setPosition(Math.round(x), Math.round(y), false);
   detailsWindow.show();
   detailsWindow.focus();
 }
@@ -144,11 +163,16 @@ function makeTray(key, item, center, connected) {
 
 function rebuildTrays() {
   const wanted = [];
-  for (const key of ['fiveHour', 'weekly']) {
-    const config = settingsStore.value.indicators[key];
-    if (config.enabled) wanted.push(key);
+  const location = settingsStore.value.displayLocation;
+  const trayEnabled = location === 'tray' || location === 'both';
+  if (trayEnabled) {
+    for (const key of ['fiveHour', 'weekly']) {
+      const config = settingsStore.value.indicators[key];
+      if (config.enabled) wanted.push(key);
+    }
   }
-  if (wanted.length === 0) wanted.push('fallback');
+  const anyIndicator = Object.values(settingsStore.value.indicators).some((indicator) => indicator.enabled);
+  if (wanted.length === 0 && (!anyIndicator || location === 'tray' || taskbarAttachment === 'error')) wanted.push('fallback');
 
   for (const [key, tray] of trays) {
     if (!wanted.includes(key)) {
@@ -162,6 +186,112 @@ function rebuildTrays() {
     const center = key === 'fallback' ? 'logo' : settingsStore.value.indicators[key].center;
     makeTray(key, item, center, usage.kind === 'ready');
   }
+}
+
+function taskbarModeEnabled() {
+  const location = settingsStore.value.displayLocation;
+  const anyIndicator = Object.values(settingsStore.value.indicators).some((indicator) => indicator.enabled);
+  return anyIndicator && (location === 'taskbar' || location === 'both');
+}
+
+function taskbarWidgetSize() {
+  const config = settingsStore.value.taskbar;
+  const count = Math.max(1, Object.values(settingsStore.value.indicators).filter((indicator) => indicator.enabled).length);
+  const padding = config.background === 'none' ? 0 : 8;
+  if (config.layout === 'compact') {
+    return { width: Math.round(count * (config.showLabels ? 74 : 52) + padding), height: config.size };
+  }
+  if (config.layout === 'bars') {
+    return { width: Math.round(config.size * (config.showLabels ? 5.2 : 4.2) + padding), height: Math.max(30, config.size) };
+  }
+  return {
+    width: Math.round(count * (config.size + (config.showLabels ? 31 : 0)) + Math.max(0, count - 1) * 5 + padding),
+    height: config.size,
+  };
+}
+
+function taskbarScriptPath() {
+  if (!app.isPackaged) return path.join(app.getAppPath(), 'scripts', 'attach-taskbar.ps1');
+  return path.join(process.resourcesPath, 'app.asar.unpacked', 'scripts', 'attach-taskbar.ps1');
+}
+
+function attachTaskbarWidget() {
+  if (!taskbarWindow || taskbarWindow.isDestroyed() || taskbarAttachRunning) return;
+  taskbarAttachRunning = true;
+  const handle = taskbarWindow.getNativeWindowHandle();
+  const hwnd = process.arch === 'x64' ? handle.readBigUInt64LE(0).toString() : String(handle.readUInt32LE(0));
+  const size = taskbarWidgetSize();
+  const config = settingsStore.value.taskbar;
+  const powershell = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'WindowsPowerShell', 'v1.0', 'powershell.exe');
+  const args = [
+    '-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+    '-File', taskbarScriptPath(),
+    '-WidgetHwnd', hwnd,
+    '-Position', config.position,
+    '-Width', String(size.width),
+    '-Height', String(size.height),
+    '-Offset', String(config.offset),
+  ];
+
+  if (taskbarAttachment !== 'attached') {
+    taskbarAttachment = 'attaching';
+    broadcast();
+  }
+  execFile(powershell, args, { windowsHide: true, timeout: 5000 }, (error) => {
+    taskbarAttachRunning = false;
+    const nextStatus = error ? 'error' : 'attached';
+    if (taskbarAttachment !== nextStatus) {
+      taskbarAttachment = nextStatus;
+      if (error) lastError = `Taskbar attachment failed: ${error.message}`;
+      rebuildTrays();
+      broadcast();
+    }
+  });
+}
+
+function createTaskbarWindow() {
+  const size = taskbarWidgetSize();
+  taskbarWindow = createWindow('taskbar.html', {
+    width: size.width,
+    height: size.height,
+    x: -32000,
+    y: -32000,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    resizable: false,
+    movable: false,
+    minimizable: false,
+    maximizable: false,
+    closable: false,
+    focusable: false,
+    skipTaskbar: true,
+    hasShadow: false,
+    roundedCorners: false,
+  });
+  taskbarWindow.setMenu(null);
+  taskbarWindow.once('ready-to-show', () => {
+    taskbarWindow.showInactive();
+    attachTaskbarWidget();
+  });
+  taskbarWindow.on('closed', () => {
+    taskbarWindow = null;
+    taskbarAttachment = 'off';
+  });
+}
+
+function rebuildTaskbarWidget() {
+  clearInterval(taskbarAttachTimer);
+  if (!taskbarModeEnabled()) {
+    taskbarAttachment = 'off';
+    if (taskbarWindow && !taskbarWindow.isDestroyed()) taskbarWindow.destroy();
+    taskbarWindow = null;
+    broadcast();
+    return;
+  }
+  if (!taskbarWindow || taskbarWindow.isDestroyed()) createTaskbarWindow();
+  else attachTaskbarWidget();
+  taskbarAttachTimer = setInterval(attachTaskbarWidget, 3000);
 }
 
 function createWindow(html, options) {
@@ -242,6 +372,7 @@ function saveSettings(next) {
   applyLoginSetting();
   setPolling();
   rebuildTrays();
+  rebuildTaskbarWidget();
   broadcast();
   return saved;
 }
@@ -286,6 +417,7 @@ function registerIpc() {
   ipcMain.handle('usage:refresh', () => refreshUsage());
   ipcMain.handle('account:login', () => beginLogin());
   ipcMain.handle('window:openSettings', () => { openSettings(); return true; });
+  ipcMain.handle('window:openDetails', () => { toggleDetailsAtCursor(); return true; });
   ipcMain.handle('window:hideDetails', () => { hideDetails(); return true; });
 }
 
@@ -314,8 +446,10 @@ if (!hasLock) {
     applyLoginSetting();
     setPolling();
     rebuildTrays();
+    rebuildTaskbarWidget();
     refreshUsage();
-    nativeTheme.on('updated', rebuildTrays);
+    nativeTheme.on('updated', () => { rebuildTrays(); broadcast(); });
+    screen.on('display-metrics-changed', attachTaskbarWidget);
   });
 }
 
@@ -323,6 +457,7 @@ app.on('window-all-closed', () => {});
 app.on('before-quit', () => {
   quitting = true;
   clearInterval(pollTimer);
+  clearInterval(taskbarAttachTimer);
   codex?.stop();
   for (const tray of trays.values()) tray.destroy();
   trays.clear();
