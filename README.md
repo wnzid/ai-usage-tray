@@ -20,10 +20,11 @@ A minimalist Windows taskbar app that shows how much of your OpenAI Work & Codex
 - Opens a compact usage popup when you click a gauge.
 - Supports optional launch at Windows sign-in and configurable refresh intervals.
 - Uses OpenAI's browser-based sign-in. No API key or copied browser cookie is required.
+- Includes a Connections dashboard with live OpenAI state, local Claude Code detection, and a safe route to Gemini's visible usage controls.
 
 The current OpenAI integration reports the shared Work & Codex usage windows associated with the signed-in ChatGPT plan. It does **not** report API billing credits or the message limits for regular ChatGPT conversations.
 
-The product name stays provider-neutral because Claude and Gemini support is planned. Those providers will only be added through documented account or local-client interfaces; AI Usage Tray will not copy browser cookies or silently scrape private endpoints.
+The product name stays provider-neutral because Claude and Gemini support is being developed. Claude Code detection and the Gemini usage-page route are available in the Connections dashboard, while actual usage meters remain marked experimental until each provider offers a stable, safe data path. AI Usage Tray will not copy browser cookies or silently scrape private endpoints.
 
 ## Development
 

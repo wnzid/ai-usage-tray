@@ -3,6 +3,7 @@ const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { CodexClient } = require('./codex-client');
+const { PROVIDER_URLS, buildProviderSnapshot, detectExecutable } = require('./providers');
 const { buildUsageSnapshot } = require('./usage');
 const { SettingsStore } = require('./settings-store');
 const { createGaugeImage } = require('./tray-gauge');
@@ -11,7 +12,7 @@ const isDemo = process.argv.includes('--demo');
 const captureArgument = process.argv.find((argument) => argument.startsWith('--capture-preview='));
 const capturePath = captureArgument?.slice('--capture-preview='.length);
 const capturePageArgument = process.argv.find((argument) => argument.startsWith('--capture-page='));
-const capturePage = ['overview', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
+const capturePage = ['overview', 'connections', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
   ? capturePageArgument.slice('--capture-page='.length)
   : 'overview';
 const backgroundLaunch = process.argv.includes('--background');
@@ -44,6 +45,7 @@ let taskbarAttachment = 'off';
 let taskbarPlacement = null;
 let taskbarAttachRunning = false;
 let systemAccent = '#60CDFF';
+let claudeDetection = isDemo ? { kind: 'missing' } : { kind: 'checking' };
 const trays = new Map();
 const trayFingerprints = new Map();
 
@@ -62,7 +64,16 @@ let usage = isDemo
 let lastError = null;
 
 function publicState() {
-  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment, taskbarPlacement, systemAccent };
+  return {
+    usage,
+    providers: buildProviderSnapshot(usage, claudeDetection),
+    settings: settingsStore.value,
+    refreshing,
+    error: lastError,
+    taskbarAttachment,
+    taskbarPlacement,
+    systemAccent,
+  };
 }
 
 function readSystemAccent(value) {
@@ -496,11 +507,37 @@ async function beginLogin() {
   }
 }
 
+async function checkClaudeCode() {
+  if (isDemo) return publicState();
+  claudeDetection = { kind: 'checking' };
+  broadcast();
+  claudeDetection = await detectExecutable(execFile);
+  broadcast();
+  return publicState();
+}
+
+async function providerAction(action) {
+  if (action === 'openai') {
+    return usage.kind === 'signedOut' ? beginLogin() : refreshUsage();
+  }
+  if (action === 'claude-detect') return checkClaudeCode();
+  if (action === 'claude-help') {
+    await shell.openExternal(PROVIDER_URLS.claudeHelp);
+    return { ok: true };
+  }
+  if (action === 'gemini-open') {
+    await shell.openExternal(PROVIDER_URLS.geminiUsage);
+    return { ok: true };
+  }
+  return { ok: false, error: 'Unknown provider action.' };
+}
+
 function registerIpc() {
   ipcMain.handle('state:get', () => publicState());
   ipcMain.handle('settings:update', (_event, next) => saveSettings(next));
   ipcMain.handle('usage:refresh', () => refreshUsage());
   ipcMain.handle('account:login', () => beginLogin());
+  ipcMain.handle('provider:action', (_event, action) => providerAction(action));
   ipcMain.handle('window:openSettings', () => { openSettings(); return true; });
   ipcMain.handle('window:openDetails', () => { toggleDetailsAtCursor(); return true; });
   ipcMain.handle('window:hideDetails', () => { hideDetails(); return true; });
@@ -540,6 +577,7 @@ if (!hasLock) {
       rebuildTaskbarWidget();
     }
     refreshUsage();
+    checkClaudeCode();
     nativeTheme.on('updated', () => { updateSettingsWindowChrome(); rebuildTrays(); broadcast(); });
     systemPreferences.on('accent-color-changed', (_event, color) => {
       systemAccent = readSystemAccent(color);

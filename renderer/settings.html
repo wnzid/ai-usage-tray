@@ -22,6 +22,9 @@
           <button class="nav-item active" type="button" data-page="overview">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2v8.3H15v-6h-6v6H3.5z"/></svg><span>Overview</span>
           </button>
+          <button class="nav-item" type="button" data-page="connections">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="12" r="3"/><circle cx="17" cy="7" r="3"/><circle cx="17" cy="17" r="3"/><path d="m9.7 10.6 4.6-2.2m-4.6 5 4.6 2.2"/></svg><span>Connections</span>
+          </button>
           <button class="nav-item" type="button" data-page="taskbar">
             <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15h18M8 17h.01M11 17h.01"/></svg><span>Taskbar widget</span>
           </button>
@@ -55,10 +58,47 @@
           </div>
           <h2 class="section-heading">Settings</h2>
           <div class="shortcut-grid">
+            <button class="shortcut-card" type="button" data-navigate="connections"><span class="shortcut-icon">⌁</span><span><strong>Connections</strong><small>OpenAI, Claude and Gemini</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="taskbar"><span class="shortcut-icon">▰</span><span><strong>Taskbar widget</strong><small>Position, layout, size and surface</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="meters"><span class="shortcut-icon ring-icon"></span><span><strong>Usage meters</strong><small>Windows, colors and center display</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="preferences"><span class="shortcut-icon">⚙</span><span><strong>Preferences</strong><small>Warnings, startup and refresh</small></span><b>›</b></button>
           </div>
+        </section>
+
+        <section class="page" data-page-content="connections">
+          <div class="page-heading"><div><h1>Connections</h1><p>Choose where AI Usage Tray reads usage information.</p></div></div>
+          <section class="provider-list" aria-label="AI provider connections">
+            <article class="provider-card" data-provider="openai">
+              <span class="provider-mark provider-openai" aria-hidden="true">O</span>
+              <div class="provider-main">
+                <div class="provider-title"><h2>OpenAI</h2><span class="provider-badge supported">Supported</span></div>
+                <p>Reads the Work &amp; Codex usage windows associated with your ChatGPT plan.</p>
+                <div class="provider-status"><i></i><span id="openai-provider-status">Checking</span><small id="openai-provider-detail">Reading the local OpenAI connection</small></div>
+              </div>
+              <div class="provider-actions"><small>Official local app-server</small><button class="button primary" id="openai-provider-action" type="button">Refresh</button></div>
+            </article>
+
+            <article class="provider-card" data-provider="claude">
+              <span class="provider-mark provider-claude" aria-hidden="true">C</span>
+              <div class="provider-main">
+                <div class="provider-title"><h2>Claude</h2><span class="provider-badge experimental">Experimental</span></div>
+                <p>Prepares a local Claude Code connection without copying browser cookies.</p>
+                <div class="provider-status"><i></i><span id="claude-provider-status">Checking this PC</span><small id="claude-provider-detail">Looking for a local Claude Code installation</small></div>
+              </div>
+              <div class="provider-actions"><small>Local Claude Code</small><button class="button" id="claude-provider-help" type="button">How it works</button><button class="button" id="claude-provider-action" type="button">Check again</button></div>
+            </article>
+
+            <article class="provider-card" data-provider="gemini">
+              <span class="provider-mark provider-gemini" aria-hidden="true">G</span>
+              <div class="provider-main">
+                <div class="provider-title"><h2>Gemini</h2><span class="provider-badge experimental">Experimental</span></div>
+                <p>Opens Gemini’s visible usage controls while a browser companion is designed.</p>
+                <div class="provider-status inactive"><i></i><span id="gemini-provider-status">Web-only for now</span><small id="gemini-provider-detail">Google provides no consumer usage API</small></div>
+              </div>
+              <div class="provider-actions"><small>Browser companion required</small><button class="button" id="gemini-provider-action" type="button">Open Gemini</button></div>
+            </article>
+          </section>
+          <section class="info-card privacy-note"><span class="info-icon">i</span><div><strong>Your sessions stay yours</strong><p>AI Usage Tray uses documented or user-visible connection methods. It does not copy browser cookies or call private account endpoints in the background.</p></div></section>
         </section>
 
         <section class="page" data-page-content="taskbar">

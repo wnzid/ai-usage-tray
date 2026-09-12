@@ -89,6 +89,20 @@ function renderAccount() {
   }
 }
 
+function renderProviders() {
+  for (const id of ['openai', 'claude', 'gemini']) {
+    const provider = currentState.providers?.[id];
+    const card = document.querySelector(`[data-provider="${id}"]`);
+    if (!provider || !card) continue;
+    card.dataset.state = provider.state;
+    $(`#${id}-provider-status`).textContent = provider.label;
+    $(`#${id}-provider-detail`).textContent = provider.detail;
+    const action = $(`#${id}-provider-action`);
+    action.textContent = provider.action;
+    action.disabled = provider.state === 'checking';
+  }
+}
+
 function applyPreviewMeter(element, key, settings) {
   const remaining = remainingFor(key);
   const indicator = settings.indicators[key];
@@ -181,6 +195,7 @@ function render() {
   applySystemAccent();
   renderStatus();
   renderAccount();
+  renderProviders();
 
   document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
   $('#taskbar-position').value = settings.taskbar.position;
@@ -278,6 +293,10 @@ document.addEventListener('input', (event) => {
 });
 $('#refresh-button').addEventListener('click', () => window.usageTray.refresh());
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());
+$('#openai-provider-action').addEventListener('click', () => window.usageTray.providerAction('openai'));
+$('#claude-provider-action').addEventListener('click', () => window.usageTray.providerAction('claude-detect'));
+$('#claude-provider-help').addEventListener('click', () => window.usageTray.providerAction('claude-help'));
+$('#gemini-provider-action').addEventListener('click', () => window.usageTray.providerAction('gemini-open'));
 document.addEventListener('click', (event) => {
   const navigation = event.target.closest('[data-page], [data-navigate]');
   if (navigation) activatePage(navigation.dataset.page || navigation.dataset.navigate);
