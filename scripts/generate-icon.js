@@ -25,22 +25,39 @@ function roundedSquareCoverage(x, y) {
   return Math.max(0, Math.min(1, radius + .5 - distance));
 }
 
+function distanceToSegment(px, py, ax, ay, bx, by) {
+  const abx = bx - ax;
+  const aby = by - ay;
+  const t = Math.max(0, Math.min(1, ((px - ax) * abx + (py - ay) * aby) / (abx * abx + aby * aby)));
+  return Math.hypot(px - (ax + abx * t), py - (ay + aby * t));
+}
+
+function insideLetters(x, y) {
+  const a = (
+    distanceToSegment(x, y, 72, 365, 132, 160) <= 18
+    || distanceToSegment(x, y, 132, 160, 192, 365) <= 18
+    || (x >= 96 && x <= 168 && y >= 287 && y <= 317)
+  ) && y >= 142 && y <= 383;
+  const i = x >= 224 && x <= 266 && y >= 160 && y <= 365;
+  const uBars = ((x >= 298 && x <= 338) || (x >= 400 && x <= 440)) && y >= 160 && y <= 305;
+  const radius = Math.hypot(x - 369, y - 304);
+  const uCurve = y >= 304 && radius >= 31 && radius <= 72;
+  return a || i || uBars || uCurve;
+}
+
 for (let y = 0; y < size; y += 1) {
   for (let x = 0; x < size; x += 1) {
     const square = roundedSquareCoverage(x + .5, y + .5);
     if (!square) continue;
     setPixel(x, y, almond, square);
 
-    const dx = x + .5 - size / 2;
-    const dy = y + .5 - size / 2;
-    const distance = Math.hypot(dx, dy);
-    const ringCoverage = Math.max(0, Math.min(1, 15.5 - Math.abs(distance - 166)));
-
-    const heartX = dx / 105;
-    const heartY = -((y + .5 - 263) / 105);
-    const heartBase = heartX * heartX + heartY * heartY - 1;
-    const insideHeart = heartBase ** 3 - heartX * heartX * heartY ** 3 <= 0;
-    if (ringCoverage > 0 || insideHeart) setPixel(x, y, ink, Math.max(ringCoverage, insideHeart ? 1 : 0));
+    let letterSamples = 0;
+    for (const offsetY of [.125, .375, .625, .875]) {
+      for (const offsetX of [.125, .375, .625, .875]) {
+        if (insideLetters(x + offsetX, y + offsetY)) letterSamples += 1;
+      }
+    }
+    if (letterSamples) setPixel(x, y, ink, letterSamples / 16);
   }
 }
 
