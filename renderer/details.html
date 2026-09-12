@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+    <title>Usage remaining</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="details-page">
+    <main class="details-shell">
+      <header class="details-header">
+        <div class="logo-mask"></div>
+        <div>
+          <strong>Usage remaining</strong>
+          <span id="details-status">Checking ChatGPT…</span>
+        </div>
+        <button class="icon-button" id="close-button" aria-label="Close">×</button>
+      </header>
+      <section class="usage-list" id="usage-list"></section>
+      <div class="details-actions">
+        <button class="button secondary" id="details-refresh">Refresh</button>
+        <button class="button primary" id="details-settings">Settings</button>
+      </div>
+    </main>
+    <script src="details.js"></script>
+  </body>
+</html>

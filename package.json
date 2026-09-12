@@ -1,0 +1,63 @@
+{
+  "name": "ai-usage-tray",
+  "version": "0.1.0",
+  "description": "Minimal Windows tray gauges for ChatGPT-backed Codex usage limits.",
+  "main": "src/main.js",
+  "author": "",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node --test tests/*.test.js",
+    "smoke:codex": "node scripts/smoke-codex.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --win nsis portable"
+  },
+  "dependencies": {
+    "@openai/codex": "0.154.0",
+    "pngjs": "7.0.0"
+  },
+  "devDependencies": {
+    "electron": "44.3.0",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "com.aiusagetray.app",
+    "productName": "AI Usage Tray",
+    "artifactName": "AI-Usage-Tray-${version}-${arch}.${ext}",
+    "asar": true,
+    "asarUnpack": [
+      "node_modules/@openai/codex/**",
+      "node_modules/@openai/codex-win32-*/**"
+    ],
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true,
+      "shortcutName": "AI Usage Tray",
+      "runAfterFinish": true
+    },
+    "portable": {
+      "artifactName": "AI-Usage-Tray-${version}-portable.${ext}"
+    }
+  }
+}

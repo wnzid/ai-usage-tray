@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'" />
+    <title>AI Usage Tray</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="settings-page">
+    <main class="settings-shell">
+      <header class="app-header">
+        <div class="brand-mark logo-mask" aria-hidden="true"></div>
+        <div>
+          <h1>AI Usage Tray</h1>
+          <p>Your ChatGPT limits, quietly in the taskbar.</p>
+        </div>
+        <span class="status-pill" id="status-pill"><i></i><span>Connecting</span></span>
+      </header>
+
+      <section class="hero card">
+        <div class="hero-copy">
+          <span class="eyebrow">LIVE PREVIEW</span>
+          <h2>Glance. Know. Keep going.</h2>
+          <p>Each enabled limit gets its own taskbar gauge. The bright ring is what you have left.</p>
+        </div>
+        <div class="preview-gauges">
+          <div class="preview-item" id="preview-five">
+            <div class="gauge gauge-large" data-center="logo"><span class="gauge-center logo-mask"></span></div>
+            <strong>5-hour</strong>
+            <span class="preview-value">—</span>
+          </div>
+          <div class="preview-item" id="preview-weekly">
+            <div class="gauge gauge-large" data-center="percentage"><span class="gauge-center">—</span></div>
+            <strong>Weekly</strong>
+            <span class="preview-value">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="account-card card">
+        <div class="account-avatar logo-mask"></div>
+        <div class="account-copy">
+          <span class="eyebrow">CHATGPT ACCOUNT</span>
+          <strong id="account-name">Checking your account…</strong>
+          <span id="account-plan">Usage is read securely through Codex.</span>
+        </div>
+        <button class="button secondary" id="refresh-button">Refresh</button>
+        <button class="button primary hidden" id="signin-button">Sign in</button>
+      </section>
+
+      <section class="section-heading">
+        <div>
+          <h2>Taskbar indicators</h2>
+          <p>Choose what appears and what sits inside each ring.</p>
+        </div>
+      </section>
+
+      <section class="indicator-grid">
+        <article class="indicator-card card" id="fiveHour-card">
+          <div class="indicator-title">
+            <div>
+              <span class="window-badge">5H</span>
+              <span>
+                <strong>5-hour window</strong>
+                <small>Short-term allowance</small>
+              </span>
+            </div>
+            <label class="switch" title="Show the 5-hour indicator">
+              <input type="checkbox" id="fiveHour-enabled" />
+              <span></span>
+            </label>
+          </div>
+          <fieldset>
+            <legend>Center display</legend>
+            <div class="segments">
+              <label><input type="radio" name="fiveHour-center" value="logo" /><span><i class="mini-logo logo-mask"></i>Logo</span></label>
+              <label><input type="radio" name="fiveHour-center" value="percentage" /><span><b>68</b>Percentage</span></label>
+            </div>
+          </fieldset>
+        </article>
+
+        <article class="indicator-card card" id="weekly-card">
+          <div class="indicator-title">
+            <div>
+              <span class="window-badge">7D</span>
+              <span>
+                <strong>Weekly window</strong>
+                <small>Long-term allowance</small>
+              </span>
+            </div>
+            <label class="switch" title="Show the weekly indicator">
+              <input type="checkbox" id="weekly-enabled" />
+              <span></span>
+            </label>
+          </div>
+          <fieldset>
+            <legend>Center display</legend>
+            <div class="segments">
+              <label><input type="radio" name="weekly-center" value="logo" /><span><i class="mini-logo logo-mask"></i>Logo</span></label>
+              <label><input type="radio" name="weekly-center" value="percentage" /><span><b>24</b>Percentage</span></label>
+            </div>
+          </fieldset>
+        </article>
+      </section>
+
+      <section class="preferences card">
+        <div class="preference-row">
+          <div>
+            <strong>Refresh usage</strong>
+            <span>How often the rings update</span>
+          </div>
+          <select id="refresh-minutes" aria-label="Refresh interval">
+            <option value="1">Every minute</option>
+            <option value="2">Every 2 minutes</option>
+            <option value="5">Every 5 minutes</option>
+            <option value="15">Every 15 minutes</option>
+          </select>
+        </div>
+        <div class="divider"></div>
+        <div class="preference-row">
+          <div>
+            <strong>Start with Windows</strong>
+            <span>Keep your usage visible after signing in</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="launch-at-login" />
+            <span></span>
+          </label>
+        </div>
+      </section>
+
+      <p class="footnote">Closing this window keeps the gauges running. Right-click any gauge to quit.</p>
+    </main>
+    <script src="settings.js"></script>
+  </body>
+</html>
