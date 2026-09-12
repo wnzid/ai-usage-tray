@@ -1,10 +1,11 @@
 :root {
   color-scheme: dark;
-  --foreground: #f7f7f7;
-  --muted: rgba(255,255,255,.62);
-  --track: rgba(255,255,255,.18);
-  --surface: rgba(27,27,29,.62);
-  --surface-solid: #202022;
+  --foreground: #fff7ef;
+  --muted: rgba(255, 239, 224, .64);
+  --track: rgba(255, 244, 234, .18);
+  --surface: rgba(34, 28, 24, .68);
+  --surface-solid: #241e1a;
+  --critical: #ff665e;
   font-family: "Segoe UI Variable", "Segoe UI", sans-serif;
 }
 
@@ -14,22 +15,23 @@ body { display: grid; place-items: center; user-select: none; }
 
 .taskbar-widget {
   --size: 34px;
+  --font-size: 10px;
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   padding: 2px 4px;
   border: 1px solid transparent;
-  border-radius: calc(var(--size) * .28);
+  border-radius: calc(var(--size) * .25);
   color: var(--foreground);
   cursor: pointer;
   overflow: hidden;
 }
-.taskbar-widget.background-subtle { background: var(--surface); border-color: rgba(255,255,255,.08); }
-.taskbar-widget.background-solid { background: var(--surface-solid); border-color: rgba(255,255,255,.11); }
-.taskbar-widget:hover { background: rgba(255,255,255,.13); }
+.taskbar-widget.background-subtle { background: var(--surface); border-color: rgba(255, 238, 222, .1); }
+.taskbar-widget.background-solid { background: var(--surface-solid); border-color: rgba(255, 238, 222, .13); }
+.taskbar-widget:hover { background: rgba(238, 211, 186, .16); }
 
 .provider-mark {
   background: currentColor;
@@ -37,9 +39,18 @@ body { display: grid; place-items: center; user-select: none; }
   mask: url("../assets/provider-mark.svg") center / contain no-repeat;
 }
 
-.task-item { min-width: 0; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.task-item {
+  --meter-color: #f6d6b8;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  color: var(--meter-color);
+}
+.task-item.is-critical { --meter-color: var(--critical) !important; }
+
 .task-gauge {
-  --value: 0;
   width: calc(var(--size) - 8px);
   height: calc(var(--size) - 8px);
   flex: 0 0 auto;
@@ -47,38 +58,67 @@ body { display: grid; place-items: center; user-select: none; }
   place-items: center;
   position: relative;
   border-radius: 50%;
-  background: conic-gradient(from -90deg, var(--foreground) calc(var(--value) * 1%), var(--track) 0);
+  background: conic-gradient(from -90deg, currentColor calc(var(--value) * 1%), var(--track) 0);
 }
-.task-gauge::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: rgba(20,20,22,.94); }
-.background-none .task-gauge::after { background: rgba(20,20,22,.72); }
-.task-gauge-center { position: relative; z-index: 1; color: var(--foreground); font-weight: 700; font-size: calc(var(--size) * .25); line-height: 1; }
-.task-gauge-center.provider-mark { width: 50%; height: 50%; }
-.task-caption { display: flex; flex-direction: column; line-height: 1.05; }
-.task-caption strong { font-size: calc(var(--size) * .27); font-weight: 650; }
-.task-caption span { margin-top: 2px; color: var(--muted); font-size: calc(var(--size) * .22); }
+.task-gauge::after { content: ""; position: absolute; inset: 2px; border-radius: 50%; background: rgba(25, 21, 18, .95); }
+.background-none .task-gauge::after { background: rgba(25, 21, 18, .72); }
+.task-gauge-center { position: relative; z-index: 1; color: currentColor; font-weight: 760; font-size: var(--font-size); line-height: 1; }
+.task-gauge-center.provider-mark { width: 48%; height: 48%; }
+.task-caption { display: flex; flex-direction: column; line-height: 1.02; color: var(--foreground); }
+.task-caption strong { font-size: var(--font-size); font-weight: 720; }
+.task-caption span { margin-top: 2px; color: currentColor; opacity: .78; font-size: max(8px, calc(var(--font-size) - 1px)); font-weight: 650; }
 
-.layout-compact { gap: 7px; }
-.layout-compact .task-item { gap: 4px; }
-.compact-key { color: var(--muted); font-size: calc(var(--size) * .25); font-weight: 700; }
-.compact-value { font-size: calc(var(--size) * .32); font-weight: 700; font-variant-numeric: tabular-nums; }
-.compact-ring { --value: 0; width: 7px; height: 7px; border-radius: 50%; background: conic-gradient(from -90deg, var(--foreground) calc(var(--value) * 1%), var(--track) 0); }
+.layout-compact { gap: 8px; }
+.layout-compact .task-item { gap: 4px; color: var(--foreground); }
+.compact-key { color: var(--muted); font-size: max(8px, calc(var(--font-size) - 1px)); font-weight: 720; }
+.compact-value { color: var(--meter-color); font-size: var(--font-size); font-weight: 760; font-variant-numeric: tabular-nums; }
+.compact-ring { width: 8px; height: 8px; flex: 0 0 auto; border-radius: 50%; background: conic-gradient(from -90deg, var(--meter-color) calc(var(--value) * 1%), var(--track) 0); }
 
-.layout-bars { flex-direction: column; gap: 2px; padding-block: 3px; }
-.layout-bars .task-item { width: 100%; display: grid; grid-template-columns: auto 1fr auto; gap: 5px; }
-.bar-key { min-width: 19px; color: var(--muted); font-size: 8px; font-weight: 700; }
-.bar-track { height: 4px; border-radius: 99px; overflow: hidden; background: var(--track); }
-.bar-fill { width: calc(var(--value) * 1%); height: 100%; border-radius: inherit; background: var(--foreground); }
-.bar-value { min-width: 25px; text-align: right; font-size: 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.layout-bars { flex-direction: column; gap: 3px; padding-block: 3px; }
+.layout-bars .task-item { width: 100%; display: grid; grid-template-columns: auto minmax(42px, 1fr) auto; gap: 6px; }
+.bar-key { min-width: 19px; color: var(--muted); font-size: max(8px, calc(var(--font-size) - 2px)); font-weight: 750; }
+.bar-track { height: 5px; position: relative; overflow: hidden; border-radius: 99px; background: var(--track); box-shadow: inset 0 1px 1px rgba(0, 0, 0, .28); }
+.bar-fill {
+  display: block;
+  width: calc(var(--value) * 1%);
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  border-radius: inherit;
+  background: var(--meter-color);
+  box-shadow: 0 0 7px color-mix(in srgb, var(--meter-color) 60%, transparent);
+  transition: width .35s ease;
+}
+.bar-fill::after { content: ""; position: absolute; inset: 0 0 50%; border-radius: inherit; background: rgba(255,255,255,.28); }
+.bar-value { min-width: 34px; color: var(--meter-color); text-align: right; font-size: max(8px, calc(var(--font-size) - 1px)); font-weight: 760; font-variant-numeric: tabular-nums; }
+
+.task-item.is-empty .task-gauge,
+.task-item.is-empty .compact-ring { background: repeating-conic-gradient(from -45deg, rgba(255, 102, 94, .75) 0 7deg, rgba(255, 102, 94, .18) 7deg 16deg); }
+.task-item.is-empty .bar-track { outline: 1px solid rgba(255, 102, 94, .68); background: repeating-linear-gradient(135deg, rgba(255,102,94,.26) 0 3px, rgba(255,102,94,.08) 3px 6px); }
+.task-item.is-empty .bar-value,
+.task-item.is-empty .task-caption span,
+.task-item.is-empty .compact-value { color: var(--critical); }
+
+@keyframes low-breathe {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(255, 102, 94, 0)); opacity: .82; }
+  50% { filter: drop-shadow(0 0 5px rgba(255, 102, 94, .82)); opacity: 1; }
+}
+.effects-breathing .task-item.is-critical { animation: low-breathe 1.8s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .effects-breathing .task-item.is-critical { animation: none; }
+  .bar-fill { transition: none; }
+}
 
 @media (prefers-color-scheme: light) {
   :root {
-    --foreground: #171719;
-    --muted: rgba(0,0,0,.58);
-    --track: rgba(0,0,0,.16);
-    --surface: rgba(245,245,247,.64);
-    --surface-solid: #efeff1;
+    --foreground: #1c1714;
+    --muted: rgba(30, 22, 17, .62);
+    --track: rgba(35, 25, 18, .18);
+    --surface: rgba(245, 226, 209, .76);
+    --surface-solid: #eed3ba;
   }
-  .task-gauge::after { background: rgba(243,243,245,.95); }
-  .background-none .task-gauge::after { background: rgba(243,243,245,.75); }
-  .taskbar-widget:hover { background: rgba(0,0,0,.09); }
+  .task-gauge::after { background: rgba(244, 227, 212, .96); }
+  .background-none .task-gauge::after { background: rgba(244, 227, 212, .76); }
+  .taskbar-widget:hover { background: rgba(74, 47, 28, .12); }
 }

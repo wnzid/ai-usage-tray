@@ -9,7 +9,11 @@ A minimalist Windows taskbar app that shows how much ChatGPT-backed Codex usage 
 - Shows independent taskbar gauges for the **5-hour** and **weekly** usage windows.
 - Can live directly inside the Windows taskbar, in the system tray, or in both places.
 - Supports start, center, and end taskbar placement with a fine-position slider.
-- Includes circular, compact-number, and progress-bar layouts with adjustable sizing, labels, and backgrounds.
+- Includes circular, compact-number, and filled progress-bar layouts with adjustable widget and text sizing.
+- Uses independent colors for the 5-hour and weekly meters so they stay legible on different taskbar themes.
+- Can warn at 5% remaining with a red state and optional low-motion breathing effect; zero usage gets a distinct empty state.
+- Keeps an optional app/control icon in the notification tray even while the native taskbar widget is selected.
+- Avoids unnecessary redraws during refreshes and safely repositions after Explorer or display changes.
 - Lets you enable either gauge, both, or neither.
 - Lets you put the OpenAI knot or the remaining percentage in the center of each ring.
 - Drains the ring clockwise as usage is consumed.

@@ -9,195 +9,118 @@
   </head>
   <body class="settings-page">
     <main class="settings-shell">
-      <header class="app-header">
-        <div class="brand-mark logo-mask" aria-hidden="true"></div>
-        <div>
-          <h1>AI Usage Tray</h1>
-          <p>Your ChatGPT limits, quietly in the taskbar.</p>
+      <header class="topbar">
+        <div class="app-mark" aria-hidden="true"></div>
+        <div class="title-block">
+          <h1>Usage Tray</h1>
+          <span>ChatGPT / Codex</span>
+        </div>
+        <div class="topbar-account">
+          <span id="account-name">Checking account…</span>
+          <small id="account-plan">Connecting through Codex</small>
         </div>
         <span class="status-pill" id="status-pill"><i></i><span>Connecting</span></span>
+        <button class="icon-action" id="refresh-button" title="Refresh usage" aria-label="Refresh usage">↻</button>
+        <button class="button primary hidden" id="signin-button">Sign in</button>
       </header>
 
-      <section class="hero card">
-        <div class="hero-copy">
-          <span class="eyebrow">LIVE PREVIEW</span>
-          <h2>Glance. Know. Keep going.</h2>
-          <p>Each enabled limit gets its own taskbar gauge. The bright ring is what you have left.</p>
-        </div>
-        <div class="preview-gauges">
-          <div class="preview-item" id="preview-five">
-            <div class="gauge gauge-large" data-center="logo"><span class="gauge-center logo-mask"></span></div>
-            <strong>5-hour</strong>
-            <span class="preview-value">—</span>
-          </div>
-          <div class="preview-item" id="preview-weekly">
-            <div class="gauge gauge-large" data-center="percentage"><span class="gauge-center">—</span></div>
-            <strong>Weekly</strong>
-            <span class="preview-value">—</span>
-          </div>
-        </div>
-      </section>
+      <div class="workspace">
+        <aside class="preview-column">
+          <section class="preview-card panel">
+            <div class="panel-title">
+              <div><span class="kicker">LIVE PREVIEW</span><h2>Your taskbar</h2></div>
+              <span class="preview-hint">Left-click details · right-click settings</span>
+            </div>
+            <div class="taskbar-stage" aria-label="Taskbar placement preview">
+              <div class="mock-start-button"><i></i><i></i><i></i><i></i></div>
+              <div class="mock-apps"><i></i><i></i></div>
+              <div class="taskbar-preview-widget" id="taskbar-preview-widget"></div>
+              <div class="mock-tray">⌃　▰　12:42</div>
+            </div>
+            <div class="taskbar-attach-state" id="taskbar-attach-state"><i></i><span>Preparing taskbar widget</span></div>
+          </section>
 
-      <section class="account-card card">
-        <div class="account-avatar logo-mask"></div>
-        <div class="account-copy">
-          <span class="eyebrow">CHATGPT ACCOUNT</span>
-          <strong id="account-name">Checking your account…</strong>
-          <span id="account-plan">Usage is read securely through Codex.</span>
-        </div>
-        <button class="button secondary" id="refresh-button">Refresh</button>
-        <button class="button primary hidden" id="signin-button">Sign in</button>
-      </section>
+          <section class="snapshot panel">
+            <span class="kicker">CURRENT LIMITS</span>
+            <div class="snapshot-row" id="preview-five">
+              <span class="snapshot-dot"></span>
+              <div><strong>5-hour</strong><small>Short window</small></div>
+              <b class="preview-value">—</b>
+            </div>
+            <div class="snapshot-row" id="preview-weekly">
+              <span class="snapshot-dot"></span>
+              <div><strong>Weekly</strong><small>Long window</small></div>
+              <b class="preview-value">—</b>
+            </div>
+          </section>
 
-      <section class="section-heading display-heading">
-        <div>
-          <h2>Where it lives</h2>
-          <p>Put usage directly on the taskbar, in the system tray, or in both.</p>
-        </div>
-      </section>
+          <p class="quiet-note">Closing Settings keeps Usage Tray running. Use the tray icon menu to quit.</p>
+        </aside>
 
-      <section class="display-card card">
-        <fieldset class="location-fieldset">
-          <legend>Display location</legend>
-          <div class="segments location-segments">
-            <label><input type="radio" name="display-location" value="taskbar" /><span>Taskbar</span></label>
-            <label><input type="radio" name="display-location" value="tray" /><span>System tray</span></label>
-            <label><input type="radio" name="display-location" value="both" /><span>Both</span></label>
-          </div>
-        </fieldset>
-
-        <div class="taskbar-options" id="taskbar-options">
-          <div class="taskbar-stage" aria-label="Taskbar placement preview">
-            <div class="mock-start-button"><i></i><i></i><i></i><i></i></div>
-            <div class="taskbar-preview-widget" id="taskbar-preview-widget"></div>
-            <div class="mock-tray">⌃　▰　12:42</div>
-          </div>
-          <div class="taskbar-attach-state" id="taskbar-attach-state"><i></i><span>Preparing taskbar widget</span></div>
-
-          <div class="customization-grid">
-            <fieldset>
-              <legend>Side</legend>
-              <div class="segments three-segments">
-                <label><input type="radio" name="taskbar-position" value="start" /><span>Start</span></label>
-                <label><input type="radio" name="taskbar-position" value="center" /><span>Center</span></label>
-                <label><input type="radio" name="taskbar-position" value="end" /><span>End</span></label>
+        <section class="controls-column">
+          <section class="panel compact-panel">
+            <div class="panel-title"><div><span class="kicker">PLACEMENT</span><h2>Where it appears</h2></div></div>
+            <fieldset class="flat-fieldset">
+              <div class="segments three-segments location-segments">
+                <label><input type="radio" name="display-location" value="taskbar" /><span>Taskbar</span></label>
+                <label><input type="radio" name="display-location" value="tray" /><span>Tray only</span></label>
+                <label><input type="radio" name="display-location" value="both" /><span>Both</span></label>
               </div>
             </fieldset>
-            <label class="select-control">
-              <span>Visual style</span>
-              <select id="taskbar-layout">
-                <option value="gauges">Circular gauges</option>
-                <option value="compact">Compact numbers</option>
-                <option value="bars">Progress bars</option>
-              </select>
-            </label>
-            <label class="select-control">
-              <span>Background</span>
-              <select id="taskbar-background">
-                <option value="none">Transparent</option>
-                <option value="subtle">Subtle glass</option>
-                <option value="solid">Solid</option>
-              </select>
-            </label>
-            <div class="inline-toggle-control">
-              <span><strong>Labels</strong><small>Show 5H and 7D</small></span>
-              <label class="switch"><input type="checkbox" id="taskbar-labels" /><span></span></label>
+            <div class="taskbar-options" id="taskbar-options">
+              <div class="control-grid three-up">
+                <label class="select-control"><span>Side</span><select id="taskbar-position"><option value="start">Start</option><option value="center">Center</option><option value="end">End</option></select></label>
+                <label class="select-control"><span>Style</span><select id="taskbar-layout"><option value="gauges">Gauges</option><option value="compact">Numbers</option><option value="bars">Progress bars</option></select></label>
+                <label class="select-control"><span>Surface</span><select id="taskbar-background"><option value="none">Transparent</option><option value="subtle">Soft glass</option><option value="solid">Almond solid</option></select></label>
+              </div>
+              <div class="slider-grid">
+                <label class="slider-control"><span>Widget <output id="taskbar-size-value">34 px</output></span><input type="range" id="taskbar-size" min="24" max="44" step="1" /></label>
+                <label class="slider-control"><span>Text <output id="taskbar-font-size-value">10 px</output></span><input type="range" id="taskbar-font-size" min="8" max="16" step="1" /></label>
+                <label class="slider-control wide"><span>Fine position <output id="taskbar-offset-value">0 px</output></span><input type="range" id="taskbar-offset" min="-240" max="240" step="4" /></label>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div class="slider-control">
-            <div><span>Widget size</span><output id="taskbar-size-value">34 px</output></div>
-            <input type="range" id="taskbar-size" min="24" max="44" step="1" />
-          </div>
-          <div class="slider-control">
-            <div><span>Fine position</span><output id="taskbar-offset-value">0 px</output></div>
-            <input type="range" id="taskbar-offset" min="-240" max="240" step="4" />
-          </div>
-        </div>
-      </section>
-
-      <section class="section-heading">
-        <div>
-          <h2>Taskbar indicators</h2>
-          <p>Choose what appears and what sits inside each ring.</p>
-        </div>
-      </section>
-
-      <section class="indicator-grid">
-        <article class="indicator-card card" id="fiveHour-card">
-          <div class="indicator-title">
-            <div>
+          <section class="panel compact-panel meters-panel">
+            <div class="panel-title"><div><span class="kicker">METERS</span><h2>What you can see</h2></div><span class="panel-note">Choose a color that contrasts with your taskbar.</span></div>
+            <article class="meter-row" id="fiveHour-card">
               <span class="window-badge">5H</span>
-              <span>
-                <strong>5-hour window</strong>
-                <small>Short-term allowance</small>
-              </span>
-            </div>
-            <label class="switch" title="Show the 5-hour indicator">
-              <input type="checkbox" id="fiveHour-enabled" />
-              <span></span>
-            </label>
-          </div>
-          <fieldset>
-            <legend>Center display</legend>
-            <div class="segments">
-              <label><input type="radio" name="fiveHour-center" value="logo" /><span><i class="mini-logo logo-mask"></i>Logo</span></label>
-              <label><input type="radio" name="fiveHour-center" value="percentage" /><span><b>68</b>Percentage</span></label>
-            </div>
-          </fieldset>
-        </article>
+              <div class="meter-name"><strong>5-hour limit</strong><small>Fast allowance</small></div>
+              <label class="color-control" title="5-hour color"><input type="color" id="fiveHour-color" value="#F6D6B8" /><span></span></label>
+              <div class="segments mini-segments">
+                <label><input type="radio" name="fiveHour-center" value="logo" /><span>Logo</span></label>
+                <label><input type="radio" name="fiveHour-center" value="percentage" /><span>%</span></label>
+              </div>
+              <label class="switch" title="Show 5-hour limit"><input type="checkbox" id="fiveHour-enabled" /><span></span></label>
+            </article>
+            <article class="meter-row" id="weekly-card">
+              <span class="window-badge warm">7D</span>
+              <div class="meter-name"><strong>Weekly limit</strong><small>Long allowance</small></div>
+              <label class="color-control" title="Weekly color"><input type="color" id="weekly-color" value="#E5A878" /><span></span></label>
+              <div class="segments mini-segments">
+                <label><input type="radio" name="weekly-center" value="logo" /><span>Logo</span></label>
+                <label><input type="radio" name="weekly-center" value="percentage" /><span>%</span></label>
+              </div>
+              <label class="switch" title="Show weekly limit"><input type="checkbox" id="weekly-enabled" /><span></span></label>
+            </article>
+          </section>
 
-        <article class="indicator-card card" id="weekly-card">
-          <div class="indicator-title">
-            <div>
-              <span class="window-badge">7D</span>
-              <span>
-                <strong>Weekly window</strong>
-                <small>Long-term allowance</small>
-              </span>
-            </div>
-            <label class="switch" title="Show the weekly indicator">
-              <input type="checkbox" id="weekly-enabled" />
-              <span></span>
-            </label>
-          </div>
-          <fieldset>
-            <legend>Center display</legend>
-            <div class="segments">
-              <label><input type="radio" name="weekly-center" value="logo" /><span><i class="mini-logo logo-mask"></i>Logo</span></label>
-              <label><input type="radio" name="weekly-center" value="percentage" /><span><b>24</b>Percentage</span></label>
-            </div>
-          </fieldset>
-        </article>
-      </section>
+        </section>
+      </div>
 
-      <section class="preferences card">
-        <div class="preference-row">
-          <div>
-            <strong>Refresh usage</strong>
-            <span>How often the rings update</span>
-          </div>
-          <select id="refresh-minutes" aria-label="Refresh interval">
-            <option value="1">Every minute</option>
-            <option value="2">Every 2 minutes</option>
-            <option value="5">Every 5 minutes</option>
-            <option value="15">Every 15 minutes</option>
-          </select>
+      <section class="panel compact-panel behavior-panel">
+        <div class="panel-title"><div><span class="kicker">BEHAVIOR</span><h2>Glance settings</h2></div></div>
+        <div class="toggle-grid">
+          <label class="toggle-row"><span><strong>Labels</strong><small>Show 5H and 7D</small></span><span class="switch"><input type="checkbox" id="taskbar-labels" /><span></span></span></label>
+          <label class="toggle-row"><span><strong>Always show tray icon</strong><small>Quick access even in taskbar mode</small></span><span class="switch"><input type="checkbox" id="always-show-tray-icon" /><span></span></span></label>
+          <label class="toggle-row"><span><strong>Low-usage warning</strong><small>Turn red at 5% remaining</small></span><span class="switch"><input type="checkbox" id="low-remaining-alert" /><span></span></span></label>
+          <label class="toggle-row"><span><strong>Breathing warning</strong><small>Gently pulse below 5%</small></span><span class="switch"><input type="checkbox" id="breathing-effect" /><span></span></span></label>
         </div>
-        <div class="divider"></div>
-        <div class="preference-row">
-          <div>
-            <strong>Start with Windows</strong>
-            <span>Keep your usage visible after signing in</span>
-          </div>
-          <label class="switch">
-            <input type="checkbox" id="launch-at-login" />
-            <span></span>
-          </label>
+        <div class="footer-controls">
+          <label class="select-control"><span>Refresh</span><select id="refresh-minutes"><option value="1">Every minute</option><option value="2">Every 2 min</option><option value="5">Every 5 min</option><option value="15">Every 15 min</option></select></label>
+          <label class="inline-check"><input type="checkbox" id="launch-at-login" /><span>Start with Windows</span></label>
         </div>
       </section>
-
-      <p class="footnote">Closing this window keeps the gauges running. Right-click any gauge to quit.</p>
     </main>
     <script src="settings.js"></script>
   </body>

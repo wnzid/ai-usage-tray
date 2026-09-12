@@ -17,7 +17,9 @@ function usageRow(key) {
   const remaining = Math.round(item?.remainingPercent ?? 0);
 
   const row = document.createElement('article');
-  row.className = 'usage-row';
+  const critical = state.settings.taskbar.lowRemainingAlert && remaining > 0 && remaining <= 5;
+  row.className = `usage-row${critical ? ' critical' : ''}${remaining === 0 ? ' empty' : ''}`;
+  row.style.setProperty('--meter-color', critical || remaining === 0 ? '#FF665E' : config.color);
   const gauge = document.createElement('div');
   gauge.className = 'gauge';
   gauge.style.setProperty('--value', remaining);
@@ -32,7 +34,7 @@ function usageRow(key) {
   title.textContent = key === 'fiveHour' ? '5-hour window' : 'Weekly window';
   const value = document.createElement('span');
   value.className = 'remaining';
-  value.textContent = item ? `${remaining}% remaining` : 'Usage unavailable';
+  value.textContent = item ? (remaining === 0 ? 'Allowance empty' : `${remaining}% remaining`) : 'Usage unavailable';
   const reset = document.createElement('small');
   reset.textContent = formatReset(item?.resetsAt);
   copy.append(title, value, reset);

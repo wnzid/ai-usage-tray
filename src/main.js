@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, nativeTheme, screen, shell, Tray } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, Tray } = require('electron');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -12,6 +12,21 @@ const captureArgument = process.argv.find((argument) => argument.startsWith('--c
 const capturePath = captureArgument?.slice('--capture-preview='.length);
 const backgroundLaunch = process.argv.includes('--background');
 
+if (capturePath) {
+  app.disableHardwareAcceleration();
+  app.commandLine.appendSwitch('disable-gpu');
+}
+
+// Electron's single-instance lock is scoped by userData. During development,
+// give each checkout its own profile so a preview/staging copy cannot make the
+// real checkout appear to open and immediately close.
+if (!app.isPackaged) {
+  const checkout = path.resolve(__dirname, '..');
+  const profile = capturePath ? 'capture' : 'profile';
+  app.setPath('userData', path.join(checkout, '.dev-data', profile));
+  fs.mkdirSync(app.getPath('userData'), { recursive: true });
+}
+
 let settingsStore;
 let codex;
 let settingsWindow;
@@ -22,8 +37,10 @@ let taskbarAttachTimer;
 let refreshing = false;
 let quitting = false;
 let taskbarAttachment = 'off';
+let taskbarPlacement = null;
 let taskbarAttachRunning = false;
 const trays = new Map();
+const trayFingerprints = new Map();
 
 let usage = isDemo
   ? {
@@ -40,7 +57,7 @@ let usage = isDemo
 let lastError = null;
 
 function publicState() {
-  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment };
+  return { usage, settings: settingsStore.value, refreshing, error: lastError, taskbarAttachment, taskbarPlacement };
 }
 
 function broadcast() {
@@ -61,6 +78,7 @@ function windowFor(key) {
 }
 
 function trayTooltip(key, item) {
+  if (key === 'app' || key === 'fallback') return 'AI Usage Tray — click for usage';
   if (usage.kind === 'signedOut') return 'AI Usage Tray — sign in required';
   if (usage.kind === 'loading') return 'AI Usage Tray — loading usage';
   if (!item) return `${key === 'fiveHour' ? '5-hour' : 'Weekly'} usage unavailable`;
@@ -68,6 +86,10 @@ function trayTooltip(key, item) {
 }
 
 function openSettings() {
+  if (!app.isReady()) {
+    app.whenReady().then(openSettings);
+    return;
+  }
   if (!settingsWindow || settingsWindow.isDestroyed()) createSettingsWindow();
   settingsWindow.show();
   settingsWindow.focus();
@@ -141,14 +163,30 @@ function trayMenu() {
 }
 
 function makeTray(key, item, center, connected) {
-  const image = createGaugeImage(require('electron'), {
-    app,
-    remaining: item?.remainingPercent ?? 0,
-    center,
-    dark: nativeTheme.shouldUseDarkColors,
-    connected,
-  });
+  const isAppIcon = key === 'app' || key === 'fallback';
+  const indicator = settingsStore.value.indicators[key];
+  const critical = settingsStore.value.taskbar.lowRemainingAlert
+    && (item?.remainingPercent ?? 100) > 0
+    && (item?.remainingPercent ?? 100) <= 5;
+  const fingerprint = isAppIcon
+    ? 'almond-heart-v1'
+    : JSON.stringify([Math.round(item?.remainingPercent ?? 0), center, indicator?.color, critical, connected, nativeTheme.shouldUseDarkColors]);
   let tray = trays.get(key);
+  if (tray && trayFingerprints.get(key) === fingerprint) {
+    tray.setToolTip(trayTooltip(key, item));
+    return;
+  }
+  const image = isAppIcon
+    ? nativeImage.createFromPath(path.join(app.getAppPath(), 'assets', 'icon.png')).resize({ width: 18, height: 18 })
+    : createGaugeImage(require('electron'), {
+        app,
+        remaining: item?.remainingPercent ?? 0,
+        center,
+        color: indicator?.color,
+        critical,
+        dark: nativeTheme.shouldUseDarkColors,
+        connected,
+      });
   if (!tray) {
     tray = new Tray(image);
     tray.setIgnoreDoubleClickEvents(true);
@@ -158,6 +196,7 @@ function makeTray(key, item, center, connected) {
   } else {
     tray.setImage(image);
   }
+  trayFingerprints.set(key, fingerprint);
   tray.setToolTip(trayTooltip(key, item));
 }
 
@@ -171,6 +210,7 @@ function rebuildTrays() {
       if (config.enabled) wanted.push(key);
     }
   }
+  if (settingsStore.value.alwaysShowTrayIcon && !wanted.includes('app')) wanted.push('app');
   const anyIndicator = Object.values(settingsStore.value.indicators).some((indicator) => indicator.enabled);
   if (wanted.length === 0 && (!anyIndicator || location === 'tray' || taskbarAttachment === 'error')) wanted.push('fallback');
 
@@ -178,12 +218,13 @@ function rebuildTrays() {
     if (!wanted.includes(key)) {
       tray.destroy();
       trays.delete(key);
+      trayFingerprints.delete(key);
     }
   }
 
   for (const key of wanted) {
-    const item = key === 'fallback' ? null : windowFor(key);
-    const center = key === 'fallback' ? 'logo' : settingsStore.value.indicators[key].center;
+    const item = key === 'fallback' || key === 'app' ? null : windowFor(key);
+    const center = key === 'fallback' || key === 'app' ? 'logo' : settingsStore.value.indicators[key].center;
     makeTray(key, item, center, usage.kind === 'ready');
   }
 }
@@ -199,10 +240,10 @@ function taskbarWidgetSize() {
   const count = Math.max(1, Object.values(settingsStore.value.indicators).filter((indicator) => indicator.enabled).length);
   const padding = config.background === 'none' ? 0 : 8;
   if (config.layout === 'compact') {
-    return { width: Math.round(count * (config.showLabels ? 74 : 52) + padding), height: config.size };
+    return { width: Math.round(count * (config.showLabels ? 64 + config.fontSize : 44 + config.fontSize) + padding), height: config.size };
   }
   if (config.layout === 'bars') {
-    return { width: Math.round(config.size * (config.showLabels ? 5.2 : 4.2) + padding), height: Math.max(30, config.size) };
+    return { width: Math.round(config.size * (config.showLabels ? 5.2 : 4.2) + config.fontSize * 1.5 + padding), height: Math.max(30, config.size) };
   }
   return {
     width: Math.round(count * (config.size + (config.showLabels ? 31 : 0)) + Math.max(0, count - 1) * 5 + padding),
@@ -237,10 +278,16 @@ function attachTaskbarWidget() {
     taskbarAttachment = 'attaching';
     broadcast();
   }
-  execFile(powershell, args, { windowsHide: true, timeout: 5000 }, (error) => {
+  execFile(powershell, args, { windowsHide: true, timeout: 5000 }, (error, stdout) => {
     taskbarAttachRunning = false;
     const nextStatus = error ? 'error' : 'attached';
-    if (taskbarAttachment !== nextStatus) {
+    const previousPlacement = JSON.stringify(taskbarPlacement);
+    if (!error) {
+      try { taskbarPlacement = JSON.parse(stdout.trim()); } catch { taskbarPlacement = null; }
+    } else {
+      taskbarPlacement = null;
+    }
+    if (taskbarAttachment !== nextStatus || previousPlacement !== JSON.stringify(taskbarPlacement)) {
       taskbarAttachment = nextStatus;
       if (error) lastError = `Taskbar attachment failed: ${error.message}`;
       rebuildTrays();
@@ -263,7 +310,7 @@ function createTaskbarWindow() {
     movable: false,
     minimizable: false,
     maximizable: false,
-    closable: false,
+    closable: true,
     focusable: false,
     skipTaskbar: true,
     hasShadow: false,
@@ -284,6 +331,7 @@ function rebuildTaskbarWidget() {
   clearInterval(taskbarAttachTimer);
   if (!taskbarModeEnabled()) {
     taskbarAttachment = 'off';
+    taskbarPlacement = null;
     if (taskbarWindow && !taskbarWindow.isDestroyed()) taskbarWindow.destroy();
     taskbarWindow = null;
     broadcast();
@@ -291,7 +339,9 @@ function rebuildTaskbarWidget() {
   }
   if (!taskbarWindow || taskbarWindow.isDestroyed()) createTaskbarWindow();
   else attachTaskbarWidget();
-  taskbarAttachTimer = setInterval(attachTaskbarWidget, 3000);
+  // The script is a no-op when Explorer and the requested bounds are unchanged.
+  // A slow health check still recovers gracefully after an Explorer restart.
+  taskbarAttachTimer = setInterval(attachTaskbarWidget, 15_000);
 }
 
 function createWindow(html, options) {
@@ -315,10 +365,10 @@ function createWindow(html, options) {
 function createSettingsWindow() {
   settingsWindow = createWindow('settings.html', {
     title: 'AI Usage Tray',
-    width: 780,
-    height: 820,
-    minWidth: 680,
-    minHeight: 660,
+    width: 880,
+    height: 760,
+    minWidth: 720,
+    minHeight: 620,
     autoHideMenuBar: true,
   });
   settingsWindow.on('close', (event) => {
@@ -331,11 +381,12 @@ function createSettingsWindow() {
   settingsWindow.once('ready-to-show', async () => {
     if (!backgroundLaunch || capturePath) settingsWindow.show();
     if (capturePath) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1200));
       const image = await settingsWindow.webContents.capturePage();
       fs.writeFileSync(capturePath, image.toPNG());
+      await new Promise((resolve) => setTimeout(resolve, 250));
       quitting = true;
-      app.quit();
+      app.exit(0);
     }
   });
 }
@@ -446,7 +497,13 @@ if (!hasLock) {
     applyLoginSetting();
     setPolling();
     rebuildTrays();
-    rebuildTaskbarWidget();
+    if (capturePath) {
+      taskbarAttachment = 'attached';
+      taskbarPlacement = { note: 'Placed beside Windows controls' };
+      broadcast();
+    } else {
+      rebuildTaskbarWidget();
+    }
     refreshUsage();
     nativeTheme.on('updated', () => { rebuildTrays(); broadcast(); });
     screen.on('display-metrics-changed', attachTaskbarWidget);
@@ -459,6 +516,9 @@ app.on('before-quit', () => {
   clearInterval(pollTimer);
   clearInterval(taskbarAttachTimer);
   codex?.stop();
+  if (taskbarWindow && !taskbarWindow.isDestroyed()) taskbarWindow.destroy();
+  taskbarWindow = null;
   for (const tray of trays.values()) tray.destroy();
   trays.clear();
+  trayFingerprints.clear();
 });

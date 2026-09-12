@@ -47,8 +47,8 @@ test('clamps malformed usage percentages', () => {
 test('sanitizes settings and preserves safe choices', () => {
   const value = sanitizeSettings({
     indicators: {
-      fiveHour: { enabled: false, center: 'percentage' },
-      weekly: { enabled: true, center: 'anything' },
+      fiveHour: { enabled: false, center: 'percentage', color: '#123456' },
+      weekly: { enabled: true, center: 'anything', color: 'unsafe' },
     },
     refreshMinutes: 15,
     launchAtLogin: true,
@@ -56,9 +56,10 @@ test('sanitizes settings and preserves safe choices', () => {
 
   assert.deepEqual(value, {
     displayLocation: 'taskbar',
+    alwaysShowTrayIcon: true,
     indicators: {
-      fiveHour: { enabled: false, center: 'percentage' },
-      weekly: { enabled: true, center: 'percentage' },
+      fiveHour: { enabled: false, center: 'percentage', color: '#123456' },
+      weekly: { enabled: true, center: 'percentage', color: '#E5A878' },
     },
     refreshMinutes: 15,
     launchAtLogin: true,
@@ -68,6 +69,9 @@ test('sanitizes settings and preserves safe choices', () => {
       size: 34,
       background: 'subtle',
       showLabels: true,
+      fontSize: 10,
+      lowRemainingAlert: true,
+      breathing: true,
       offset: 0,
     },
   });
@@ -90,6 +94,9 @@ test('sanitizes taskbar customization controls', () => {
       size: 99,
       background: 'solid',
       showLabels: false,
+      fontSize: 30,
+      lowRemainingAlert: false,
+      breathing: false,
       offset: -999,
     },
   });
@@ -100,6 +107,9 @@ test('sanitizes taskbar customization controls', () => {
     size: 44,
     background: 'solid',
     showLabels: false,
+    fontSize: 16,
+    lowRemainingAlert: false,
+    breathing: false,
     offset: -240,
   });
 });

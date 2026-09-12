@@ -7,23 +7,29 @@ function usageWindow(key) {
   return currentState?.usage?.windows?.find((item) => item.key === key);
 }
 
-function setGauge(container, item, center, enabled) {
-  const gauge = container.querySelector('.gauge');
-  const centerElement = gauge.querySelector('.gauge-center');
-  const remaining = Math.round(item?.remainingPercent ?? 0);
-  gauge.style.setProperty('--value', remaining);
-  container.classList.toggle('disabled', !enabled);
-  gauge.dataset.center = center;
-  centerElement.className = `gauge-center${center === 'logo' ? ' logo-mask' : ''}`;
-  centerElement.textContent = center === 'percentage' ? remaining : '';
-  container.querySelector('.preview-value').textContent = item ? `${remaining}% left` : 'Waiting for data';
+function remainingFor(key) {
+  return Math.max(0, Math.min(100, Math.round(usageWindow(key)?.remainingPercent ?? 0)));
+}
+
+function createTextElement(tag, className, text) {
+  const element = document.createElement(tag);
+  element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+function meterClass(remaining, settings) {
+  if (remaining === 0) return ' is-empty';
+  if (settings.taskbar.lowRemainingAlert && remaining <= 5) return ' is-critical';
+  return '';
 }
 
 function renderStatus() {
   const pill = $('#status-pill');
   const label = pill.querySelector('span');
-  pill.classList.remove('ready', 'error');
+  pill.classList.remove('ready', 'error', 'working');
   if (currentState.refreshing) {
+    pill.classList.add('working');
     label.textContent = 'Refreshing';
   } else if (currentState.usage.kind === 'ready') {
     pill.classList.add('ready');
@@ -48,31 +54,33 @@ function renderAccount() {
 
   if (account) {
     $('#account-name').textContent = account.email;
-    $('#account-plan').textContent = `${account.plan || 'ChatGPT'} plan · Updated automatically`;
+    $('#account-plan').textContent = `${account.plan || 'ChatGPT'} plan · auto-updating`;
   } else if (signedOut) {
-    $('#account-name').textContent = 'Connect your ChatGPT account';
-    $('#account-plan').textContent = 'A browser window will open for secure sign-in.';
+    $('#account-name').textContent = 'ChatGPT is not connected';
+    $('#account-plan').textContent = 'Sign in securely through Codex';
   } else if (currentState.error) {
-    $('#account-name').textContent = 'Could not read usage';
+    $('#account-name').textContent = 'Usage unavailable';
     $('#account-plan').textContent = currentState.error;
   } else {
-    $('#account-name').textContent = 'Checking your account…';
-    $('#account-plan').textContent = 'Usage is read securely through Codex.';
+    $('#account-name').textContent = 'Checking account…';
+    $('#account-plan').textContent = 'Connecting through Codex';
   }
 }
 
-function createTextElement(tag, className, text) {
-  const element = document.createElement(tag);
-  element.className = className;
-  element.textContent = text;
-  return element;
+function applyPreviewMeter(element, key, settings) {
+  const remaining = remainingFor(key);
+  const indicator = settings.indicators[key];
+  element.className += meterClass(remaining, settings);
+  element.style.setProperty('--value', remaining);
+  element.style.setProperty('--meter-color', indicator.color);
 }
 
 function renderTaskbarPreview(settings = currentState.settings) {
   const preview = $('#taskbar-preview-widget');
   const config = settings.taskbar;
-  preview.className = `taskbar-preview-widget position-${config.position} preview-background-${config.background}`;
+  preview.className = `taskbar-preview-widget position-${config.position} preview-background-${config.background}${config.breathing ? ' effects-breathing' : ''}`;
   preview.style.setProperty('--preview-size', `${config.size}px`);
+  preview.style.setProperty('--preview-font', `${config.fontSize}px`);
   preview.replaceChildren();
 
   const enabledKeys = ['fiveHour', 'weekly'].filter((key) => settings.indicators[key].enabled);
@@ -80,16 +88,15 @@ function renderTaskbarPreview(settings = currentState.settings) {
     const set = document.createElement('div');
     set.className = 'preview-bar-set';
     for (const key of enabledKeys) {
-      const remaining = Math.round(usageWindow(key)?.remainingPercent ?? 0);
+      const remaining = remainingFor(key);
       const row = document.createElement('div');
       row.className = 'preview-bar-row';
+      applyPreviewMeter(row, key, settings);
       row.append(createTextElement('span', '', config.showLabels ? (key === 'fiveHour' ? '5H' : '7D') : ''));
       const track = document.createElement('span');
       track.className = 'preview-bar-track';
-      const fill = document.createElement('i');
-      fill.style.setProperty('--value', remaining);
-      track.append(fill);
-      row.append(track, createTextElement('strong', '', `${remaining}%`));
+      track.append(document.createElement('i'));
+      row.append(track, createTextElement('strong', '', remaining === 0 ? 'EMPTY' : `${remaining}%`));
       set.append(row);
     }
     preview.append(set);
@@ -97,20 +104,17 @@ function renderTaskbarPreview(settings = currentState.settings) {
   }
 
   for (const key of enabledKeys) {
-    const remaining = Math.round(usageWindow(key)?.remainingPercent ?? 0);
+    const remaining = remainingFor(key);
     const chip = document.createElement('div');
     chip.className = 'preview-chip';
+    applyPreviewMeter(chip, key, settings);
     if (config.layout === 'compact') {
-      const ring = document.createElement('i');
-      ring.className = 'compact-ring';
-      ring.style.setProperty('--value', remaining);
-      chip.append(ring);
+      chip.append(createTextElement('i', 'compact-ring', ''));
       if (config.showLabels) chip.append(createTextElement('em', '', key === 'fiveHour' ? '5H' : '7D'));
-      chip.append(createTextElement('strong', '', `${remaining}%`));
+      chip.append(createTextElement('strong', '', remaining === 0 ? 'EMPTY' : `${remaining}%`));
     } else {
       const ring = document.createElement('span');
       ring.className = 'preview-mini-ring';
-      ring.style.setProperty('--value', remaining);
       const center = document.createElement('span');
       if (settings.indicators[key].center === 'logo') center.className = 'logo-mask';
       else center.textContent = remaining;
@@ -122,77 +126,101 @@ function renderTaskbarPreview(settings = currentState.settings) {
   }
 }
 
-function renderTaskbarControls() {
+function renderAttachment() {
   const settings = currentState.settings;
-  document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
-  document.querySelector(`input[name="taskbar-position"][value="${settings.taskbar.position}"]`).checked = true;
-  $('#taskbar-layout').value = settings.taskbar.layout;
-  $('#taskbar-background').value = settings.taskbar.background;
-  $('#taskbar-labels').checked = settings.taskbar.showLabels;
-  $('#taskbar-size').value = settings.taskbar.size;
-  $('#taskbar-offset').value = settings.taskbar.offset;
-  $('#taskbar-size-value').textContent = `${settings.taskbar.size} px`;
-  $('#taskbar-offset-value').textContent = `${settings.taskbar.offset > 0 ? '+' : ''}${settings.taskbar.offset} px`;
-  $('#taskbar-options').classList.toggle('disabled', settings.displayLocation === 'tray');
-
   const attachment = $('#taskbar-attach-state');
   attachment.classList.remove('attached', 'error');
   if (settings.displayLocation === 'tray') {
-    attachment.querySelector('span').textContent = 'Taskbar widget is disabled';
+    attachment.querySelector('span').textContent = 'Taskbar widget is off · tray remains available';
   } else if (currentState.taskbarAttachment === 'attached') {
     attachment.classList.add('attached');
-    attachment.querySelector('span').textContent = 'Attached to the Windows taskbar';
+    attachment.querySelector('span').textContent = currentState.taskbarPlacement?.note || 'Attached without overlapping the notification area';
   } else if (currentState.taskbarAttachment === 'error') {
     attachment.classList.add('error');
-    attachment.querySelector('span').textContent = 'Could not attach · tray fallback enabled';
+    attachment.querySelector('span').textContent = 'Could not attach · tray fallback is active';
   } else {
-    attachment.querySelector('span').textContent = 'Attaching to the Windows taskbar…';
+    attachment.querySelector('span').textContent = 'Finding a safe taskbar position…';
   }
-  renderTaskbarPreview();
+}
+
+function setSnapshot(key, settings) {
+  const element = $(`#preview-${key === 'fiveHour' ? 'five' : 'weekly'}`);
+  const remaining = remainingFor(key);
+  element.classList.toggle('disabled', !settings.indicators[key].enabled);
+  element.classList.toggle('critical', settings.taskbar.lowRemainingAlert && remaining > 0 && remaining <= 5);
+  element.classList.toggle('empty', remaining === 0);
+  element.style.setProperty('--meter-color', settings.indicators[key].color);
+  element.querySelector('.preview-value').textContent = usageWindow(key) ? (remaining === 0 ? 'EMPTY' : `${remaining}% left`) : 'Waiting';
 }
 
 function render() {
   if (!currentState) return;
+  const settings = currentState.settings;
   renderStatus();
   renderAccount();
-  renderTaskbarControls();
-  const settings = currentState.settings;
+
+  document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
+  $('#taskbar-position').value = settings.taskbar.position;
+  $('#taskbar-layout').value = settings.taskbar.layout;
+  $('#taskbar-background').value = settings.taskbar.background;
+  $('#taskbar-labels').checked = settings.taskbar.showLabels;
+  $('#always-show-tray-icon').checked = settings.alwaysShowTrayIcon;
+  $('#low-remaining-alert').checked = settings.taskbar.lowRemainingAlert;
+  $('#breathing-effect').checked = settings.taskbar.breathing;
+  $('#breathing-effect').disabled = !settings.taskbar.lowRemainingAlert;
+  $('#taskbar-size').value = settings.taskbar.size;
+  $('#taskbar-font-size').value = settings.taskbar.fontSize;
+  $('#taskbar-offset').value = settings.taskbar.offset;
+  $('#taskbar-size-value').textContent = `${settings.taskbar.size} px`;
+  $('#taskbar-font-size-value').textContent = `${settings.taskbar.fontSize} px`;
+  $('#taskbar-offset-value').textContent = `${settings.taskbar.offset > 0 ? '+' : ''}${settings.taskbar.offset} px`;
+  $('#taskbar-options').classList.toggle('disabled', settings.displayLocation === 'tray');
 
   for (const key of ['fiveHour', 'weekly']) {
-    const config = settings.indicators[key];
-    $(`#${key}-enabled`).checked = config.enabled;
-    document.querySelector(`input[name="${key}-center"][value="${config.center}"]`).checked = true;
-    $(`#${key}-card`).classList.toggle('disabled', !config.enabled);
-    for (const radio of document.querySelectorAll(`input[name="${key}-center"]`)) radio.disabled = !config.enabled;
+    const indicator = settings.indicators[key];
+    $(`#${key}-enabled`).checked = indicator.enabled;
+    $(`#${key}-color`).value = indicator.color;
+    $(`#${key}-color`).parentElement.style.setProperty('--swatch', indicator.color);
+    document.querySelector(`input[name="${key}-center"][value="${indicator.center}"]`).checked = true;
+    $(`#${key}-card`).classList.toggle('disabled', !indicator.enabled);
+    for (const radio of document.querySelectorAll(`input[name="${key}-center"]`)) radio.disabled = !indicator.enabled;
   }
 
   $('#refresh-minutes').value = String(settings.refreshMinutes);
   $('#launch-at-login').checked = settings.launchAtLogin;
-  setGauge($('#preview-five'), usageWindow('fiveHour'), settings.indicators.fiveHour.center, settings.indicators.fiveHour.enabled);
-  setGauge($('#preview-weekly'), usageWindow('weekly'), settings.indicators.weekly.center, settings.indicators.weekly.enabled);
+  setSnapshot('fiveHour', settings);
+  setSnapshot('weekly', settings);
+  renderTaskbarPreview(settings);
+  renderAttachment();
 }
 
 function settingsFromForm() {
   return {
     displayLocation: document.querySelector('input[name="display-location"]:checked').value,
+    alwaysShowTrayIcon: $('#always-show-tray-icon').checked,
     indicators: {
       fiveHour: {
         enabled: $('#fiveHour-enabled').checked,
         center: document.querySelector('input[name="fiveHour-center"]:checked').value,
+        color: $('#fiveHour-color').value,
       },
       weekly: {
         enabled: $('#weekly-enabled').checked,
         center: document.querySelector('input[name="weekly-center"]:checked').value,
+        color: $('#weekly-color').value,
       },
     },
     refreshMinutes: Number($('#refresh-minutes').value),
     launchAtLogin: $('#launch-at-login').checked,
     taskbar: {
-      position: document.querySelector('input[name="taskbar-position"]:checked').value,
+      position: $('#taskbar-position').value,
       layout: $('#taskbar-layout').value,
       size: Number($('#taskbar-size').value),
+      fontSize: Number($('#taskbar-font-size').value),
       background: $('#taskbar-background').value,
       showLabels: $('#taskbar-labels').checked,
+      lowRemainingAlert: $('#low-remaining-alert').checked,
+      breathing: $('#breathing-effect').checked,
       offset: Number($('#taskbar-offset').value),
     },
   };
@@ -213,8 +241,13 @@ document.addEventListener('change', (event) => {
   if (event.target.matches('input, select')) save();
 });
 document.addEventListener('input', (event) => {
+  if (event.target.matches('input[type="color"]')) {
+    event.target.parentElement.style.setProperty('--swatch', event.target.value);
+    renderTaskbarPreview(settingsFromForm());
+  }
   if (!event.target.matches('input[type="range"]')) return;
   $('#taskbar-size-value').textContent = `${$('#taskbar-size').value} px`;
+  $('#taskbar-font-size-value').textContent = `${$('#taskbar-font-size').value} px`;
   const offset = Number($('#taskbar-offset').value);
   $('#taskbar-offset-value').textContent = `${offset > 0 ? '+' : ''}${offset} px`;
   renderTaskbarPreview(settingsFromForm());
@@ -222,11 +255,5 @@ document.addEventListener('input', (event) => {
 $('#refresh-button').addEventListener('click', () => window.usageTray.refresh());
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());
 
-window.usageTray.onState((state) => {
-  currentState = state;
-  render();
-});
-window.usageTray.getState().then((state) => {
-  currentState = state;
-  render();
-});
+window.usageTray.onState((state) => { currentState = state; render(); });
+window.usageTray.getState().then((state) => { currentState = state; render(); });
