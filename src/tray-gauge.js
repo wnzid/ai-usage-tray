@@ -39,7 +39,7 @@ function blendPixel(png, x, y, color, coverage = 1) {
 
 function getMask(app) {
   if (!mask) {
-    mask = PNG.sync.read(fs.readFileSync(path.join(app.getAppPath(), 'assets', 'openai-knot-mask.png')));
+    mask = PNG.sync.read(fs.readFileSync(path.join(app.getAppPath(), 'assets', 'provider-mark.png')));
   }
   return mask;
 }
@@ -79,7 +79,8 @@ function drawLogo(png, app, foreground) {
     for (let x = Math.floor(startX); x < Math.ceil(startX + boxWidth); x += 1) {
       const sourceX = Math.max(0, Math.min(source.width - 1, Math.floor(((x - startX) / boxWidth) * source.width)));
       const sourceY = Math.max(0, Math.min(source.height - 1, Math.floor(((y - startY) / boxHeight) * source.height)));
-      const alpha = source.data[(sourceY * source.width + sourceX) * 4 + 3] / 255;
+      const sourceIndex = (sourceY * source.width + sourceX) * 4;
+      const alpha = Math.max(source.data[sourceIndex], source.data[sourceIndex + 1], source.data[sourceIndex + 2]) / 255;
       blendPixel(png, x, y, foreground, alpha);
     }
   }

@@ -35,8 +35,8 @@ button { color: inherit; }
 .logo-mask {
   display: block;
   background: currentColor;
-  -webkit-mask: url("../assets/openai-knot-mask.png") center / contain no-repeat;
-  mask: url("../assets/openai-knot-mask.png") center / contain no-repeat;
+  -webkit-mask: url("../assets/provider-mark.svg") center / contain no-repeat;
+  mask: url("../assets/provider-mark.svg") center / contain no-repeat;
 }
 .status-pill { margin-left: auto; display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); font-size: 11px; }
 .status-pill i { width: 6px; height: 6px; border-radius: 99px; background: #efb868; box-shadow: 0 0 8px currentColor; }
