@@ -3,7 +3,15 @@ const PROVIDER_URLS = Object.freeze({
   geminiUsage: 'https://gemini.google.com/',
 });
 
-function openAiStatus(usage) {
+function openAiStatus(usage, service = {}) {
+  if (service.lastError) {
+    return {
+      state: 'error',
+      label: usage.kind === 'ready' ? 'Showing saved data' : 'Needs attention',
+      detail: usage.kind === 'ready' ? 'The latest refresh failed · retry scheduled' : 'The OpenAI usage service is unavailable',
+      action: 'Try again',
+    };
+  }
   if (usage.kind === 'ready') {
     return {
       state: 'connected',
@@ -61,14 +69,14 @@ function claudeStatus(detection = { kind: 'checking' }) {
   };
 }
 
-function buildProviderSnapshot(usage, claudeDetection) {
+function buildProviderSnapshot(usage, claudeDetection, service = {}) {
   return {
     openai: {
       id: 'openai',
       name: 'OpenAI',
       capability: 'Supported',
       source: 'Official local app-server',
-      ...openAiStatus(usage),
+      ...openAiStatus(usage, service),
     },
     claude: {
       id: 'claude',

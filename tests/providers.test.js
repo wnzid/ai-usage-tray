@@ -19,6 +19,16 @@ test('offers OpenAI connection when signed out', () => {
   assert.equal(providers.claude.label, 'Claude Code detected');
 });
 
+test('reports saved data when the latest OpenAI refresh failed', () => {
+  const providers = buildProviderSnapshot(
+    { kind: 'ready', account: { plan: 'Plus' } },
+    { kind: 'missing' },
+    { lastError: 'offline' },
+  );
+  assert.equal(providers.openai.state, 'error');
+  assert.equal(providers.openai.label, 'Showing saved data');
+});
+
 test('detects a local provider executable without exposing its path', async () => {
   const fakeExec = (_command, _args, _options, callback) => callback(null, 'C:\\Tools\\claude.exe\r\n');
   assert.deepEqual(await detectExecutable(fakeExec), { kind: 'detected' });

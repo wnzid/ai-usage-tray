@@ -98,6 +98,16 @@
               <div class="provider-actions"><small>Browser companion required</small><button class="button" id="gemini-provider-action" type="button">Open Gemini</button></div>
             </article>
           </section>
+          <section class="settings-group diagnostics-group">
+            <div class="group-heading"><h2>Connection diagnostics</h2><p id="diagnostic-health">Checking services…</p></div>
+            <div class="diagnostic-grid">
+              <div><span>Last successful refresh</span><strong id="diagnostic-last-success">—</strong></div>
+              <div><span>Next automatic check</span><strong id="diagnostic-next-refresh">—</strong></div>
+              <div><span>Taskbar attachment</span><strong id="diagnostic-taskbar">—</strong></div>
+              <div><span>AIU version</span><strong id="diagnostic-version">—</strong></div>
+            </div>
+            <div class="diagnostic-error hidden" id="diagnostic-error" role="status"></div>
+          </section>
           <section class="info-card privacy-note"><span class="info-icon">i</span><div><strong>Your sessions stay yours</strong><p>AI Usage Tray uses documented or user-visible connection methods. It does not copy browser cookies or call private account endpoints in the background.</p></div></section>
         </section>
 

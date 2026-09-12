@@ -3,7 +3,12 @@ const list = document.querySelector('#usage-list');
 
 function formatReset(epochSeconds) {
   if (!epochSeconds) return 'Reset time unavailable';
-  return `Resets ${new Date(epochSeconds * 1000).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}`;
+  const minutes = Math.max(0, Math.ceil((epochSeconds * 1000 - Date.now()) / 60_000));
+  if (minutes < 1) return 'Resetting now';
+  if (minutes < 60) return `Resets in ${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return `Resets in ${hours}h${remainder ? ` ${remainder}m` : ''}`;
 }
 
 function usageWindow(key) {
@@ -36,10 +41,17 @@ function usageRow(key) {
   value.className = 'remaining';
   value.textContent = item ? (remaining === 0 ? 'Allowance empty' : `${remaining}% remaining`) : 'Usage unavailable';
   const reset = document.createElement('small');
+  reset.dataset.resetsAt = item?.resetsAt || '';
   reset.textContent = formatReset(item?.resetsAt);
   copy.append(title, value, reset);
   row.append(gauge, copy);
   return row;
+}
+
+function updateResetLabels() {
+  for (const reset of document.querySelectorAll('[data-resets-at]')) {
+    reset.textContent = formatReset(Number(reset.dataset.resetsAt));
+  }
 }
 
 function render() {
@@ -59,6 +71,8 @@ function render() {
   const status = document.querySelector('#details-status');
   status.textContent = state.refreshing
     ? 'Refreshing…'
+    : state.error && state.usage.account
+      ? 'Saved data · refresh failed'
     : state.usage.account?.plan
       ? `${state.usage.account.plan} plan`
       : state.usage.kind === 'signedOut'
@@ -75,3 +89,4 @@ document.querySelector('#details-settings').addEventListener('click', () => {
 });
 window.usageTray.onState((next) => { state = next; render(); });
 window.usageTray.getState().then((next) => { state = next; render(); });
+setInterval(updateResetLabels, 30_000);

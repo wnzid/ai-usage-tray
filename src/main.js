@@ -1,9 +1,10 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, systemPreferences, Tray } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, powerMonitor, screen, shell, systemPreferences, Tray } = require('electron');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { CodexClient } = require('./codex-client');
 const { PROVIDER_URLS, buildProviderSnapshot, detectExecutable } = require('./providers');
+const { normalDelay, retryDelay } = require('./refresh-policy');
 const { buildUsageSnapshot } = require('./usage');
 const { SettingsStore } = require('./settings-store');
 const { createGaugeImage } = require('./tray-gauge');
@@ -41,6 +42,10 @@ let settingsWindow;
 let detailsWindow;
 let taskbarWindow;
 let pollTimer;
+let retryFailures = 0;
+let lastRefreshAttemptAt = null;
+let lastSuccessfulRefreshAt = isDemo ? Date.now() : null;
+let nextRefreshAt = null;
 let taskbarAttachTimer;
 let refreshing = false;
 let quitting = false;
@@ -69,7 +74,7 @@ let lastError = null;
 function publicState() {
   return {
     usage,
-    providers: buildProviderSnapshot(usage, claudeDetection),
+    providers: buildProviderSnapshot(usage, claudeDetection, { lastError }),
     settings: settingsStore.value,
     refreshing,
     error: lastError,
@@ -78,6 +83,7 @@ function publicState() {
     systemAccent,
     onboardingRequired: captureOnboarding || (!capturePath && !settingsStore.value.onboardingComplete),
     appVersion: app.getVersion(),
+    diagnostics: { lastRefreshAttemptAt, lastSuccessfulRefreshAt, nextRefreshAt, retryFailures },
   };
 }
 
@@ -459,8 +465,21 @@ function createDetailsWindow() {
 }
 
 function setPolling() {
-  clearInterval(pollTimer);
-  pollTimer = setInterval(refreshUsage, settingsStore.value.refreshMinutes * 60_000);
+  scheduleNextRefresh(normalDelay(settingsStore.value.refreshMinutes));
+}
+
+function scheduleNextRefresh(delayMs) {
+  clearTimeout(pollTimer);
+  if (quitting || isDemo) {
+    nextRefreshAt = null;
+    return;
+  }
+  nextRefreshAt = Date.now() + delayMs;
+  pollTimer = setTimeout(() => refreshUsage(), delayMs);
+}
+
+function refreshIfStale() {
+  if (!lastRefreshAttemptAt || Date.now() - lastRefreshAttemptAt > 60_000) refreshUsage();
 }
 
 function applyLoginSetting() {
@@ -484,16 +503,21 @@ function saveSettings(next) {
 async function refreshUsage() {
   if (refreshing || isDemo) return publicState();
   refreshing = true;
+  lastRefreshAttemptAt = Date.now();
   lastError = null;
   broadcast();
   try {
     const result = await codex.readUsage();
     usage = buildUsageSnapshot(result.account, result.rateLimits);
+    retryFailures = 0;
+    lastSuccessfulRefreshAt = Date.now();
   } catch (error) {
     lastError = error.message;
+    retryFailures += 1;
     if (usage.kind === 'loading') usage = { ...usage, kind: 'error' };
   } finally {
     refreshing = false;
+    scheduleNextRefresh(lastError ? retryDelay(retryFailures) : normalDelay(settingsStore.value.refreshMinutes));
     rebuildTrays();
     broadcast();
   }
@@ -599,6 +623,10 @@ if (!hasLock) {
     });
     codex.on('exit', (message) => {
       lastError = message;
+      if (!refreshing) {
+        retryFailures += 1;
+        scheduleNextRefresh(retryDelay(retryFailures));
+      }
       rebuildTrays();
       broadcast();
     });
@@ -623,13 +651,15 @@ if (!hasLock) {
       broadcast();
     });
     screen.on('display-metrics-changed', attachTaskbarWidget);
+    powerMonitor.on('resume', refreshIfStale);
+    app.on('browser-window-focus', refreshIfStale);
   });
 }
 
 app.on('window-all-closed', () => {});
 app.on('before-quit', () => {
   quitting = true;
-  clearInterval(pollTimer);
+  clearTimeout(pollTimer);
   clearInterval(taskbarAttachTimer);
   codex?.stop();
   if (taskbarWindow && !taskbarWindow.isDestroyed()) taskbarWindow.destroy();

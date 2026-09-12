@@ -14,6 +14,23 @@ function remainingFor(key) {
   return Math.max(0, Math.min(100, Math.round(usageWindow(key)?.remainingPercent ?? 0)));
 }
 
+function relativeDuration(milliseconds) {
+  if (!Number.isFinite(milliseconds)) return 'Unavailable';
+  const future = milliseconds >= 0;
+  const totalMinutes = Math.max(0, Math.round(Math.abs(milliseconds) / 60_000));
+  if (totalMinutes < 1) return future ? 'in less than a minute' : 'just now';
+  if (totalMinutes < 60) return future ? `in ${totalMinutes} min` : `${totalMinutes} min ago`;
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const compact = `${hours}h${minutes ? ` ${minutes}m` : ''}`;
+  return future ? `in ${compact}` : `${compact} ago`;
+}
+
+function resetCopy(item) {
+  if (!item?.resetsAt) return 'Reset time unavailable';
+  return `Resets ${relativeDuration(item.resetsAt * 1000 - Date.now())}`;
+}
+
 function createTextElement(tag, className, text) {
   const element = document.createElement(tag);
   element.className = className;
@@ -56,6 +73,9 @@ function renderStatus() {
   if (currentState.refreshing) {
     pill.classList.add('working');
     label.textContent = 'Refreshing';
+  } else if (currentState.error && currentState.usage.kind === 'ready') {
+    pill.classList.add('error');
+    label.textContent = 'Saved data';
   } else if (currentState.usage.kind === 'ready') {
     pill.classList.add('ready');
     label.textContent = 'Live';
@@ -105,6 +125,25 @@ function renderProviders() {
     action.disabled = provider.state === 'checking';
     if (id === 'openai') $('#openai-provider-disconnect').classList.toggle('hidden', provider.state !== 'connected');
   }
+}
+
+function renderDiagnostics() {
+  const diagnostics = currentState.diagnostics || {};
+  $('#diagnostic-last-success').textContent = diagnostics.lastSuccessfulRefreshAt
+    ? relativeDuration(diagnostics.lastSuccessfulRefreshAt - Date.now())
+    : 'Not yet';
+  $('#diagnostic-next-refresh').textContent = diagnostics.nextRefreshAt
+    ? relativeDuration(diagnostics.nextRefreshAt - Date.now())
+    : currentState.refreshing ? 'Refreshing now' : 'Not scheduled';
+  $('#diagnostic-taskbar').textContent = currentState.settings.displayLocation === 'tray'
+    ? 'Not requested'
+    : currentState.taskbarAttachment === 'attached' ? 'Attached' : currentState.taskbarAttachment === 'error' ? 'Tray fallback' : 'Preparing';
+  $('#diagnostic-version').textContent = currentState.appVersion || 'Preview';
+  $('#diagnostic-health').textContent = currentState.error
+    ? `Retry ${diagnostics.retryFailures || 1} scheduled`
+    : currentState.refreshing ? 'Refreshing usage…' : 'All available services healthy';
+  $('#diagnostic-error').classList.toggle('hidden', !currentState.error);
+  $('#diagnostic-error').textContent = currentState.error ? `Last error: ${currentState.error}` : '';
 }
 
 function openOnboarding() {
@@ -234,7 +273,9 @@ function setSnapshot(key, settings) {
   element.classList.toggle('critical', settings.taskbar.lowRemainingAlert && remaining > 0 && remaining <= 5);
   element.classList.toggle('empty', remaining === 0);
   element.style.setProperty('--meter-color', settings.indicators[key].color);
-  element.querySelector('.preview-value').textContent = usageWindow(key) ? (remaining === 0 ? 'EMPTY' : `${remaining}% left`) : 'Waiting';
+  const item = usageWindow(key);
+  element.querySelector('.preview-value').textContent = item ? (remaining === 0 ? 'EMPTY' : `${remaining}% left`) : 'Waiting';
+  element.querySelector('small').textContent = item ? resetCopy(item) : 'Work & Codex limit';
 }
 
 function render() {
@@ -245,6 +286,7 @@ function render() {
   renderAccount();
   renderProviders();
   renderOnboarding();
+  renderDiagnostics();
 
   document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
   $('#taskbar-position').value = settings.taskbar.position;
@@ -381,3 +423,9 @@ document.addEventListener('click', (event) => {
 
 window.usageTray.onState((state) => { currentState = state; render(); });
 window.usageTray.getState().then((state) => { currentState = state; render(); });
+setInterval(() => {
+  if (!currentState) return;
+  setSnapshot('fiveHour', currentState.settings);
+  setSnapshot('weekly', currentState.settings);
+  renderDiagnostics();
+}, 30_000);
