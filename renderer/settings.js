@@ -3,6 +3,8 @@ let saving = false;
 let onboardingStep = 1;
 let onboardingOpen = false;
 let onboardingInitialized = false;
+let renderedOnboardingStep = null;
+let diagnosticsResetTimer;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -52,12 +54,26 @@ function applySystemAccent() {
   document.documentElement.style.setProperty('--accent-foreground', luminance > .56 ? '#111111' : '#FFFFFF');
 }
 
-function activatePage(name) {
+function activatePage(name, moveFocus = false) {
   const target = document.querySelector(`[data-page-content="${name}"]`);
   if (!target) return;
-  for (const page of document.querySelectorAll('[data-page-content]')) page.classList.toggle('active', page === target);
-  for (const item of document.querySelectorAll('[data-page]')) item.classList.toggle('active', item.dataset.page === name);
+  for (const page of document.querySelectorAll('[data-page-content]')) {
+    const active = page === target;
+    page.classList.toggle('active', active);
+    page.setAttribute('aria-hidden', String(!active));
+  }
+  for (const item of document.querySelectorAll('[data-page]')) {
+    const active = item.dataset.page === name;
+    item.classList.toggle('active', active);
+    if (active) item.setAttribute('aria-current', 'page');
+    else item.removeAttribute('aria-current');
+  }
   document.querySelector('.page-region').scrollTop = 0;
+  if (moveFocus) {
+    const heading = target.querySelector('h1');
+    heading?.setAttribute('tabindex', '-1');
+    heading?.focus({ preventScroll: true });
+  }
 }
 
 function meterClass(remaining, settings) {
@@ -150,6 +166,7 @@ function openOnboarding() {
   onboardingStep = 1;
   onboardingOpen = true;
   onboardingInitialized = true;
+  renderedOnboardingStep = null;
   document.querySelector(`input[name="onboarding-location"][value="${currentState.settings.displayLocation}"]`).checked = true;
   $('#onboarding-five').checked = currentState.settings.indicators.fiveHour.enabled;
   $('#onboarding-weekly').checked = currentState.settings.indicators.weekly.enabled;
@@ -160,7 +177,11 @@ function renderOnboarding() {
   const layer = $('#onboarding');
   const shouldOpen = onboardingOpen || currentState?.onboardingRequired;
   layer.classList.toggle('hidden', !shouldOpen);
-  if (!shouldOpen) return;
+  for (const region of document.querySelectorAll('.titlebar, .sidebar, .page-region')) region.inert = shouldOpen;
+  if (!shouldOpen) {
+    renderedOnboardingStep = null;
+    return;
+  }
   if (!onboardingInitialized) {
     onboardingInitialized = true;
     document.querySelector(`input[name="onboarding-location"][value="${currentState.settings.displayLocation}"]`).checked = true;
@@ -178,6 +199,16 @@ function renderOnboarding() {
   $('#onboarding-progress').textContent = `Step ${onboardingStep} of 3`;
   $('#onboarding-back').classList.toggle('hidden', onboardingStep === 1);
   $('#onboarding-next').textContent = onboardingStep === 3 ? 'Start using AIU' : 'Next';
+
+  if (renderedOnboardingStep !== onboardingStep) {
+    renderedOnboardingStep = onboardingStep;
+    requestAnimationFrame(() => {
+      const activeStep = document.querySelector(`[data-onboarding-step="${onboardingStep}"]`);
+      const focusTarget = activeStep?.querySelector('input:checked, input, button, h1');
+      if (focusTarget?.tagName === 'H1') focusTarget.setAttribute('tabindex', '-1');
+      focusTarget?.focus({ preventScroll: true });
+    });
+  }
 
   const openai = currentState.providers?.openai;
   if (openai) {
@@ -393,6 +424,24 @@ $('#claude-provider-action').addEventListener('click', () => window.usageTray.pr
 $('#claude-provider-help').addEventListener('click', () => window.usageTray.providerAction('claude-help'));
 $('#gemini-provider-action').addEventListener('click', () => window.usageTray.providerAction('gemini-open'));
 $('#run-onboarding').addEventListener('click', openOnboarding);
+$('#copy-diagnostics').addEventListener('click', async () => {
+  const button = $('#copy-diagnostics');
+  const result = $('#copy-diagnostics-result');
+  clearTimeout(diagnosticsResetTimer);
+  button.disabled = true;
+  try {
+    await window.usageTray.copyDiagnostics();
+    button.textContent = 'Copied';
+    result.textContent = 'Privacy-safe diagnostics copied to the clipboard.';
+  } catch {
+    button.textContent = 'Could not copy';
+    result.textContent = 'Diagnostics could not be copied.';
+  }
+  diagnosticsResetTimer = setTimeout(() => {
+    button.disabled = false;
+    button.textContent = 'Copy diagnostics';
+  }, 1800);
+});
 $('#onboarding-connect').addEventListener('click', () => window.usageTray.providerAction('openai'));
 $('#onboarding-back').addEventListener('click', () => {
   onboardingStep = Math.max(1, onboardingStep - 1);
@@ -418,7 +467,23 @@ $('#onboarding-next').addEventListener('click', async () => {
 });
 document.addEventListener('click', (event) => {
   const navigation = event.target.closest('[data-page], [data-navigate]');
-  if (navigation) activatePage(navigation.dataset.page || navigation.dataset.navigate);
+  if (navigation) activatePage(navigation.dataset.page || navigation.dataset.navigate, true);
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Tab' || $('#onboarding').classList.contains('hidden')) return;
+  const focusable = [...$('#onboarding').querySelectorAll('button:not([disabled]), input:not([disabled])')]
+    .filter((element) => element.offsetParent !== null);
+  if (!focusable.length) return;
+  const first = focusable[0];
+  const last = focusable.at(-1);
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
 });
 
 window.usageTray.onState((state) => { currentState = state; render(); });

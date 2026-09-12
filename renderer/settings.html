@@ -11,15 +11,15 @@
     <div class="app-shell">
       <header class="titlebar">
         <div class="titlebar-brand"><div class="app-mark" aria-hidden="true"></div><strong>AI Usage Tray</strong></div>
-        <div class="titlebar-account"><span id="account-name">Checking OpenAI account…</span><small id="account-plan">Connecting to Work &amp; Codex usage</small></div>
-        <span class="status-pill" id="status-pill"><i></i><span>Connecting</span></span>
+        <div class="titlebar-account" aria-live="polite"><span id="account-name">Checking OpenAI account…</span><small id="account-plan">Connecting to Work &amp; Codex usage</small></div>
+        <span class="status-pill" id="status-pill" role="status" aria-live="polite"><i></i><span>Connecting</span></span>
         <button class="icon-action" id="refresh-button" title="Refresh usage" aria-label="Refresh usage">↻</button>
         <button class="button primary hidden" id="signin-button">Sign in</button>
       </header>
 
       <aside class="sidebar" aria-label="Settings navigation">
         <nav class="navigation">
-          <button class="nav-item active" type="button" data-page="overview">
+          <button class="nav-item active" type="button" data-page="overview" aria-current="page">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.2 12 4l8.5 7.2v8.3H15v-6h-6v6H3.5z"/></svg><span>Overview</span>
           </button>
           <button class="nav-item" type="button" data-page="connections">
@@ -99,7 +99,7 @@
             </article>
           </section>
           <section class="settings-group diagnostics-group">
-            <div class="group-heading"><h2>Connection diagnostics</h2><p id="diagnostic-health">Checking services…</p></div>
+            <div class="group-heading"><div><h2>Connection diagnostics</h2><p id="diagnostic-health">Checking services…</p></div><button class="button" id="copy-diagnostics" type="button">Copy diagnostics</button></div>
             <div class="diagnostic-grid">
               <div><span>Last successful refresh</span><strong id="diagnostic-last-success">—</strong></div>
               <div><span>Next automatic check</span><strong id="diagnostic-next-refresh">—</strong></div>
@@ -107,6 +107,7 @@
               <div><span>AIU version</span><strong id="diagnostic-version">—</strong></div>
             </div>
             <div class="diagnostic-error hidden" id="diagnostic-error" role="status"></div>
+            <div class="visually-hidden" id="copy-diagnostics-result" role="status" aria-live="polite"></div>
           </section>
           <section class="info-card privacy-note"><span class="info-icon">i</span><div><strong>Your sessions stay yours</strong><p>AI Usage Tray uses documented or user-visible connection methods. It does not copy browser cookies or call private account endpoints in the background.</p></div></section>
         </section>
@@ -163,7 +164,7 @@
         </section>
       </main>
 
-      <section class="onboarding-layer hidden" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+      <section class="onboarding-layer hidden" id="onboarding" role="dialog" aria-modal="true" aria-label="Initial setup">
         <div class="onboarding-dialog">
           <header class="onboarding-header">
             <div class="app-mark" aria-hidden="true"></div>

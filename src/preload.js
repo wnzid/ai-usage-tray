@@ -6,6 +6,7 @@ contextBridge.exposeInMainWorld('usageTray', {
   refresh: () => ipcRenderer.invoke('usage:refresh'),
   signIn: () => ipcRenderer.invoke('account:login'),
   providerAction: (action) => ipcRenderer.invoke('provider:action', action),
+  copyDiagnostics: () => ipcRenderer.invoke('diagnostics:copy'),
   openSettings: () => ipcRenderer.invoke('window:openSettings'),
   openDetails: () => ipcRenderer.invoke('window:openDetails'),
   hideDetails: () => ipcRenderer.invoke('window:hideDetails'),

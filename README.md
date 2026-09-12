@@ -25,6 +25,8 @@ A minimalist Windows taskbar app that shows how much of your OpenAI Work & Codex
 - Supports confirmed OpenAI disconnect and reconnect through the official local app-server.
 - Keeps the last successful values visible during a failed refresh, retries with bounded backoff, and refreshes after system resume.
 - Shows reset countdowns and a compact diagnostics panel without redrawing unchanged taskbar widgets.
+- Converts service failures into useful, privacy-safe messages and can copy an account-free diagnostic report for support.
+- Respects reduced-motion and Windows high-contrast preferences, with keyboard navigation and a focus-trapped setup dialog.
 
 The current OpenAI integration reports the shared Work & Codex usage windows associated with the signed-in ChatGPT plan. It does **not** report API billing credits or the message limits for regular ChatGPT conversations.
 

@@ -1,8 +1,10 @@
-const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, powerMonitor, screen, shell, systemPreferences, Tray } = require('electron');
+const { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, nativeImage, nativeTheme, powerMonitor, screen, shell, systemPreferences, Tray } = require('electron');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { CodexClient } = require('./codex-client');
+const { buildDiagnosticReport } = require('./diagnostics');
+const { publicError } = require('./errors');
 const { PROVIDER_URLS, buildProviderSnapshot, detectExecutable } = require('./providers');
 const { normalDelay, retryDelay } = require('./refresh-policy');
 const { buildUsageSnapshot } = require('./usage');
@@ -72,12 +74,14 @@ let usage = isDemo
 let lastError = null;
 
 function publicState() {
+  const visibleError = publicError(lastError);
   return {
     usage,
     providers: buildProviderSnapshot(usage, claudeDetection, { lastError }),
     settings: settingsStore.value,
     refreshing,
-    error: lastError,
+    error: visibleError?.message || null,
+    errorCode: visibleError?.code || null,
     taskbarAttachment,
     taskbarPlacement,
     systemAccent,
@@ -85,6 +89,15 @@ function publicState() {
     appVersion: app.getVersion(),
     diagnostics: { lastRefreshAttemptAt, lastSuccessfulRefreshAt, nextRefreshAt, retryFailures },
   };
+}
+
+function diagnosticReport() {
+  return buildDiagnosticReport(publicState(), { version: app.getVersion() });
+}
+
+function copyDiagnostics() {
+  clipboard.writeText(JSON.stringify(diagnosticReport(), null, 2));
+  return { ok: true };
 }
 
 function readSystemAccent(value) {
@@ -535,7 +548,7 @@ async function beginLogin() {
   } catch (error) {
     lastError = error.message;
     broadcast();
-    return { ok: false, error: error.message };
+    return { ok: false, error: publicError(error).message };
   }
 }
 
@@ -565,7 +578,7 @@ async function disconnectOpenAI() {
   } catch (error) {
     lastError = error.message;
     broadcast();
-    return { ok: false, error: error.message };
+    return { ok: false, error: publicError(error).message };
   }
 }
 
@@ -601,6 +614,7 @@ function registerIpc() {
   ipcMain.handle('usage:refresh', () => refreshUsage());
   ipcMain.handle('account:login', () => beginLogin());
   ipcMain.handle('provider:action', (_event, action) => providerAction(action));
+  ipcMain.handle('diagnostics:copy', () => copyDiagnostics());
   ipcMain.handle('window:openSettings', () => { openSettings(); return true; });
   ipcMain.handle('window:openDetails', () => { toggleDetailsAtCursor(); return true; });
   ipcMain.handle('window:hideDetails', () => { hideDetails(); return true; });
