@@ -75,7 +75,7 @@
                 <p>Reads the Work &amp; Codex usage windows associated with your ChatGPT plan.</p>
                 <div class="provider-status"><i></i><span id="openai-provider-status">Checking</span><small id="openai-provider-detail">Reading the local OpenAI connection</small></div>
               </div>
-              <div class="provider-actions"><small>Official local app-server</small><button class="button primary" id="openai-provider-action" type="button">Refresh</button></div>
+              <div class="provider-actions"><small>Official local app-server</small><button class="button" id="openai-provider-disconnect" type="button">Disconnect</button><button class="button primary" id="openai-provider-action" type="button">Refresh</button></div>
             </article>
 
             <article class="provider-card" data-provider="claude">
@@ -147,10 +147,58 @@
             <div class="group-heading"><h2>App behavior</h2></div>
             <div class="setting-row"><div class="setting-copy"><strong>Refresh usage</strong><small>How often AI Usage Tray checks for changes.</small></div><label class="select-control row-control"><select id="refresh-minutes"><option value="1">Every minute</option><option value="2">Every 2 minutes</option><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option></select></label></div>
             <label class="setting-row interactive-row"><div class="setting-copy"><strong>Start with Windows</strong><small>Launch quietly after you sign in.</small></div><span class="switch"><input type="checkbox" id="launch-at-login" /><span></span></span></label>
+            <div class="setting-row"><div class="setting-copy"><strong>Run initial setup again</strong><small>Revisit placement, meters, and account connection.</small></div><button class="button row-button" id="run-onboarding" type="button">Open setup</button></div>
           </section>
           <p class="closing-note">Closing this window keeps the widget running. Use the tray menu to quit.</p>
         </section>
       </main>
+
+      <section class="onboarding-layer hidden" id="onboarding" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
+        <div class="onboarding-dialog">
+          <header class="onboarding-header">
+            <div class="app-mark" aria-hidden="true"></div>
+            <div><strong>AI Usage Tray</strong><span id="onboarding-progress">Step 1 of 3</span></div>
+          </header>
+
+          <div class="onboarding-step active" data-onboarding-step="1">
+            <span class="eyebrow">Welcome</span>
+            <h1 id="onboarding-title">Usage at a glance</h1>
+            <p>Choose where AIU should live. You can change this any time.</p>
+            <fieldset class="onboarding-choices" data-onboarding>
+              <label><input type="radio" name="onboarding-location" value="taskbar" /><span><b>Taskbar</b><small>Always visible beside Windows controls</small></span></label>
+              <label><input type="radio" name="onboarding-location" value="tray" /><span><b>Notification area</b><small>Compact icons behind the tray</small></span></label>
+              <label><input type="radio" name="onboarding-location" value="both" /><span><b>Both</b><small>Taskbar display with tray access</small></span></label>
+            </fieldset>
+          </div>
+
+          <div class="onboarding-step" data-onboarding-step="2">
+            <span class="eyebrow">Usage windows</span>
+            <h1>What should AIU show?</h1>
+            <p>Select one or both OpenAI Work &amp; Codex limits.</p>
+            <div class="onboarding-choices meter-choices" data-onboarding>
+              <label><input type="checkbox" id="onboarding-five" /><span><b>5-hour window</b><small>Short-term remaining usage</small></span></label>
+              <label><input type="checkbox" id="onboarding-weekly" /><span><b>Weekly window</b><small>Long-term remaining usage</small></span></label>
+            </div>
+          </div>
+
+          <div class="onboarding-step" data-onboarding-step="3">
+            <span class="eyebrow">Account</span>
+            <h1>Connect OpenAI</h1>
+            <p>AIU uses OpenAI’s secure browser sign-in and stores no copied browser cookies.</p>
+            <div class="onboarding-account" id="onboarding-account">
+              <span class="provider-mark provider-openai" aria-hidden="true">O</span>
+              <div><strong id="onboarding-account-title">Checking account…</strong><small id="onboarding-account-detail">Reading the local connection</small></div>
+              <button class="button primary" id="onboarding-connect" type="button">Connect</button>
+            </div>
+          </div>
+
+          <footer class="onboarding-footer">
+            <button class="button" id="onboarding-back" type="button">Back</button>
+            <span class="onboarding-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <button class="button primary" id="onboarding-next" type="button">Next</button>
+          </footer>
+        </div>
+      </section>
     </div>
     <script src="settings.js"></script>
   </body>

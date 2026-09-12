@@ -21,6 +21,8 @@ A minimalist Windows taskbar app that shows how much of your OpenAI Work & Codex
 - Supports optional launch at Windows sign-in and configurable refresh intervals.
 - Uses OpenAI's browser-based sign-in. No API key or copied browser cookie is required.
 - Includes a Connections dashboard with live OpenAI state, local Claude Code detection, and a safe route to Gemini's visible usage controls.
+- Guides first-time users through placement, meter selection, and OpenAI connection, with an option to rerun setup later.
+- Supports confirmed OpenAI disconnect and reconnect through the official local app-server.
 
 The current OpenAI integration reports the shared Work & Codex usage windows associated with the signed-in ChatGPT plan. It does **not** report API billing credits or the message limits for regular ChatGPT conversations.
 

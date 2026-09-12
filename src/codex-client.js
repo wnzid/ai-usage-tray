@@ -133,6 +133,11 @@ class CodexClient extends EventEmitter {
     });
   }
 
+  async logout() {
+    await this.start();
+    return this.request('account/logout', {});
+  }
+
   stop() {
     if (this.child && !this.child.killed) this.child.kill();
   }

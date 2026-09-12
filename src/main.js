@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, systemPreferences, Tray } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain, Menu, nativeImage, nativeTheme, screen, shell, systemPreferences, Tray } = require('electron');
 const { execFile } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -16,6 +16,9 @@ const capturePage = ['overview', 'connections', 'taskbar', 'meters', 'preference
   ? capturePageArgument.slice('--capture-page='.length)
   : 'overview';
 const backgroundLaunch = process.argv.includes('--background');
+const captureOnboarding = process.argv.includes('--capture-onboarding');
+const captureOnboardingStepArgument = process.argv.find((argument) => argument.startsWith('--capture-onboarding-step='));
+const captureOnboardingStep = Math.min(3, Math.max(1, Number(captureOnboardingStepArgument?.split('=')[1]) || 1));
 
 if (capturePath) {
   app.disableHardwareAcceleration();
@@ -73,6 +76,8 @@ function publicState() {
     taskbarAttachment,
     taskbarPlacement,
     systemAccent,
+    onboardingRequired: captureOnboarding || (!capturePath && !settingsStore.value.onboardingComplete),
+    appVersion: app.getVersion(),
   };
 }
 
@@ -424,6 +429,9 @@ function createSettingsWindow() {
     if (!backgroundLaunch || capturePath) settingsWindow.show();
     if (capturePath) {
       if (capturePage !== 'overview') await settingsWindow.webContents.executeJavaScript(`activatePage(${JSON.stringify(capturePage)})`);
+      if (captureOnboarding) {
+        await settingsWindow.webContents.executeJavaScript(`onboardingStep = ${captureOnboardingStep}; renderOnboarding()`);
+      }
       await new Promise((resolve) => setTimeout(resolve, 1200));
       const image = await settingsWindow.webContents.capturePage();
       fs.writeFileSync(capturePath, image.toPNG());
@@ -507,6 +515,36 @@ async function beginLogin() {
   }
 }
 
+async function disconnectOpenAI() {
+  const options = {
+    type: 'warning',
+    title: 'Disconnect OpenAI?',
+    message: 'Disconnect this OpenAI account from AI Usage Tray?',
+    detail: 'This signs out the local Codex session shared with other Codex tools. Usage meters will be unavailable until you sign in again.',
+    buttons: ['Disconnect', 'Cancel'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+  };
+  const result = settingsWindow && !settingsWindow.isDestroyed()
+    ? await dialog.showMessageBox(settingsWindow, options)
+    : await dialog.showMessageBox(options);
+  if (result.response !== 0) return { ok: false, cancelled: true };
+
+  try {
+    await codex.logout();
+    usage = { kind: 'signedOut', account: null, windows: [], resetCredits: null, updatedAt: Date.now() };
+    lastError = null;
+    rebuildTrays();
+    broadcast();
+    return { ok: true };
+  } catch (error) {
+    lastError = error.message;
+    broadcast();
+    return { ok: false, error: error.message };
+  }
+}
+
 async function checkClaudeCode() {
   if (isDemo) return publicState();
   claudeDetection = { kind: 'checking' };
@@ -520,6 +558,7 @@ async function providerAction(action) {
   if (action === 'openai') {
     return usage.kind === 'signedOut' ? beginLogin() : refreshUsage();
   }
+  if (action === 'openai-disconnect') return disconnectOpenAI();
   if (action === 'claude-detect') return checkClaudeCode();
   if (action === 'claude-help') {
     await shell.openExternal(PROVIDER_URLS.claudeHelp);

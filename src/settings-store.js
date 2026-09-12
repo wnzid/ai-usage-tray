@@ -3,6 +3,7 @@ const path = require('node:path');
 
 const DEFAULT_SETTINGS = Object.freeze({
   paletteVersion: 2,
+  onboardingComplete: false,
   displayLocation: 'taskbar',
   alwaysShowTrayIcon: true,
   indicators: {
@@ -45,6 +46,9 @@ function sanitizeSettings(value = {}) {
   const resetLegacyColors = value.paletteVersion !== DEFAULT_SETTINGS.paletteVersion;
   return {
     paletteVersion: DEFAULT_SETTINGS.paletteVersion,
+    onboardingComplete: typeof value.onboardingComplete === 'boolean'
+      ? value.onboardingComplete
+      : DEFAULT_SETTINGS.onboardingComplete,
     displayLocation: displayLocations.includes(value.displayLocation)
       ? value.displayLocation
       : DEFAULT_SETTINGS.displayLocation,

@@ -1,5 +1,8 @@
 let currentState;
 let saving = false;
+let onboardingStep = 1;
+let onboardingOpen = false;
+let onboardingInitialized = false;
 
 const $ = (selector) => document.querySelector(selector);
 
@@ -100,6 +103,51 @@ function renderProviders() {
     const action = $(`#${id}-provider-action`);
     action.textContent = provider.action;
     action.disabled = provider.state === 'checking';
+    if (id === 'openai') $('#openai-provider-disconnect').classList.toggle('hidden', provider.state !== 'connected');
+  }
+}
+
+function openOnboarding() {
+  onboardingStep = 1;
+  onboardingOpen = true;
+  onboardingInitialized = true;
+  document.querySelector(`input[name="onboarding-location"][value="${currentState.settings.displayLocation}"]`).checked = true;
+  $('#onboarding-five').checked = currentState.settings.indicators.fiveHour.enabled;
+  $('#onboarding-weekly').checked = currentState.settings.indicators.weekly.enabled;
+  renderOnboarding();
+}
+
+function renderOnboarding() {
+  const layer = $('#onboarding');
+  const shouldOpen = onboardingOpen || currentState?.onboardingRequired;
+  layer.classList.toggle('hidden', !shouldOpen);
+  if (!shouldOpen) return;
+  if (!onboardingInitialized) {
+    onboardingInitialized = true;
+    document.querySelector(`input[name="onboarding-location"][value="${currentState.settings.displayLocation}"]`).checked = true;
+    $('#onboarding-five').checked = currentState.settings.indicators.fiveHour.enabled;
+    $('#onboarding-weekly').checked = currentState.settings.indicators.weekly.enabled;
+  }
+
+  for (const step of document.querySelectorAll('[data-onboarding-step]')) {
+    step.classList.toggle('active', Number(step.dataset.onboardingStep) === onboardingStep);
+  }
+  for (const [index, dot] of [...document.querySelectorAll('.onboarding-dots i')].entries()) {
+    dot.classList.toggle('active', index + 1 === onboardingStep);
+    dot.classList.toggle('complete', index + 1 < onboardingStep);
+  }
+  $('#onboarding-progress').textContent = `Step ${onboardingStep} of 3`;
+  $('#onboarding-back').classList.toggle('hidden', onboardingStep === 1);
+  $('#onboarding-next').textContent = onboardingStep === 3 ? 'Start using AIU' : 'Next';
+
+  const openai = currentState.providers?.openai;
+  if (openai) {
+    $('#onboarding-account').dataset.state = openai.state;
+    $('#onboarding-account-title').textContent = openai.label;
+    $('#onboarding-account-detail').textContent = openai.detail;
+    $('#onboarding-connect').textContent = openai.state === 'connected' ? 'Connected' : 'Connect';
+    $('#onboarding-connect').disabled = openai.state === 'connected' || openai.state === 'checking';
+    $('#onboarding-connect').classList.toggle('primary', openai.state !== 'connected');
   }
 }
 
@@ -196,6 +244,7 @@ function render() {
   renderStatus();
   renderAccount();
   renderProviders();
+  renderOnboarding();
 
   document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
   $('#taskbar-position').value = settings.taskbar.position;
@@ -235,6 +284,7 @@ function render() {
 function settingsFromForm() {
   return {
     paletteVersion: currentState.settings.paletteVersion,
+    onboardingComplete: currentState.settings.onboardingComplete,
     displayLocation: document.querySelector('input[name="display-location"]:checked').value,
     alwaysShowTrayIcon: $('#always-show-tray-icon').checked,
     indicators: {
@@ -277,9 +327,11 @@ async function save() {
 }
 
 document.addEventListener('change', (event) => {
+  if (event.target.closest('#onboarding')) return;
   if (event.target.matches('input, select')) save();
 });
 document.addEventListener('input', (event) => {
+  if (event.target.closest('#onboarding')) return;
   if (event.target.matches('input[type="color"]')) {
     event.target.parentElement.style.setProperty('--swatch', event.target.value);
     renderTaskbarPreview(settingsFromForm());
@@ -294,9 +346,34 @@ document.addEventListener('input', (event) => {
 $('#refresh-button').addEventListener('click', () => window.usageTray.refresh());
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());
 $('#openai-provider-action').addEventListener('click', () => window.usageTray.providerAction('openai'));
+$('#openai-provider-disconnect').addEventListener('click', () => window.usageTray.providerAction('openai-disconnect'));
 $('#claude-provider-action').addEventListener('click', () => window.usageTray.providerAction('claude-detect'));
 $('#claude-provider-help').addEventListener('click', () => window.usageTray.providerAction('claude-help'));
 $('#gemini-provider-action').addEventListener('click', () => window.usageTray.providerAction('gemini-open'));
+$('#run-onboarding').addEventListener('click', openOnboarding);
+$('#onboarding-connect').addEventListener('click', () => window.usageTray.providerAction('openai'));
+$('#onboarding-back').addEventListener('click', () => {
+  onboardingStep = Math.max(1, onboardingStep - 1);
+  renderOnboarding();
+});
+$('#onboarding-next').addEventListener('click', async () => {
+  if (onboardingStep < 3) {
+    onboardingStep += 1;
+    renderOnboarding();
+    return;
+  }
+  const location = document.querySelector('input[name="onboarding-location"]:checked')?.value || 'taskbar';
+  const next = settingsFromForm();
+  next.onboardingComplete = true;
+  next.displayLocation = location;
+  next.indicators.fiveHour.enabled = $('#onboarding-five').checked;
+  next.indicators.weekly.enabled = $('#onboarding-weekly').checked;
+  currentState.settings = await window.usageTray.updateSettings(next);
+  currentState.onboardingRequired = false;
+  onboardingOpen = false;
+  onboardingInitialized = false;
+  render();
+});
 document.addEventListener('click', (event) => {
   const navigation = event.target.closest('[data-page], [data-navigate]');
   if (navigation) activatePage(navigation.dataset.page || navigation.dataset.navigate);
