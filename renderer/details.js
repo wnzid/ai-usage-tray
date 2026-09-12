@@ -51,7 +51,7 @@ function render() {
     const empty = document.createElement('div');
     empty.className = 'details-empty';
     empty.textContent = state.usage.kind === 'signedOut'
-      ? 'Open Settings to sign in to ChatGPT.'
+      ? 'Open Settings to connect your OpenAI account.'
       : 'No taskbar indicators are enabled.';
     list.append(empty);
   }
@@ -63,7 +63,7 @@ function render() {
       ? `${state.usage.account.plan} plan`
       : state.usage.kind === 'signedOut'
         ? 'Sign in required'
-        : state.error || 'ChatGPT';
+        : state.error || 'OpenAI · Work & Codex';
   document.querySelector('#details-refresh').disabled = state.refreshing;
 }
 

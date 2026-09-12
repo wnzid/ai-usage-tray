@@ -1,7 +1,7 @@
 {
   "name": "ai-usage-tray",
   "version": "0.1.0",
-  "description": "Minimal Windows tray gauges for ChatGPT-backed Codex usage limits.",
+  "description": "Minimal Windows taskbar gauges for OpenAI Work and Codex usage limits.",
   "main": "src/main.js",
   "author": "",
   "license": "MIT",

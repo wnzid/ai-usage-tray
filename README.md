@@ -1,6 +1,6 @@
 # AI Usage Tray
 
-A minimalist Windows taskbar app that shows how much ChatGPT-backed Codex usage you have left. The project is currently in its design and development stage; release executables will be produced after the interface is approved.
+A minimalist Windows taskbar app that shows how much of your OpenAI Work & Codex usage remains. The project is currently in its design and development stage; release executables will be produced after the interface is approved.
 
 ![Settings preview](docs/settings-preview.png)
 
@@ -19,9 +19,11 @@ A minimalist Windows taskbar app that shows how much ChatGPT-backed Codex usage 
 - Drains the ring clockwise as usage is consumed.
 - Opens a compact usage popup when you click a gauge.
 - Supports optional launch at Windows sign-in and configurable refresh intervals.
-- Uses a browser-based ChatGPT sign-in. No API key or copied browser cookie is required.
+- Uses OpenAI's browser-based sign-in. No API key or copied browser cookie is required.
 
-The app reports Codex usage limits associated with the signed-in ChatGPT account. It does not report API billing credits or general ChatGPT message caps.
+The current OpenAI integration reports the shared Work & Codex usage windows associated with the signed-in ChatGPT plan. It does **not** report API billing credits or the message limits for regular ChatGPT conversations.
+
+The product name stays provider-neutral because Claude and Gemini support is planned. Those providers will only be added through documented account or local-client interfaces; AI Usage Tray will not copy browser cookies or silently scrape private endpoints.
 
 ## Development
 

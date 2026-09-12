@@ -76,16 +76,16 @@ function renderAccount() {
 
   if (account) {
     $('#account-name').textContent = account.email;
-    $('#account-plan').textContent = `${account.plan || 'ChatGPT'} plan · auto-updating`;
+    $('#account-plan').textContent = `${account.plan || 'OpenAI'} plan · Work & Codex usage`;
   } else if (signedOut) {
-    $('#account-name').textContent = 'ChatGPT is not connected';
-    $('#account-plan').textContent = 'Sign in securely through Codex';
+    $('#account-name').textContent = 'OpenAI account is not connected';
+    $('#account-plan').textContent = 'Sign in to read Work & Codex usage';
   } else if (currentState.error) {
     $('#account-name').textContent = 'Usage unavailable';
     $('#account-plan').textContent = currentState.error;
   } else {
     $('#account-name').textContent = 'Checking account…';
-    $('#account-plan').textContent = 'Connecting through Codex';
+    $('#account-plan').textContent = 'Connecting to Work & Codex usage';
   }
 }
 

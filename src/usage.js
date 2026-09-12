@@ -78,7 +78,7 @@ function accountSummary(accountResult) {
   const account = accountResult?.account || accountResult;
   if (!account || accountResult?.account === null) return null;
   return {
-    email: account.email || account.name || 'ChatGPT account',
+    email: account.email || account.name || 'OpenAI account',
     plan: account.planType || account.plan_type || account.plan || null,
   };
 }

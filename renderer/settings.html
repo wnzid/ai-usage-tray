@@ -11,7 +11,7 @@
     <div class="app-shell">
       <header class="titlebar">
         <div class="titlebar-brand"><div class="app-mark" aria-hidden="true"></div><strong>AI Usage Tray</strong></div>
-        <div class="titlebar-account"><span id="account-name">Checking account…</span><small id="account-plan">Connecting through Codex</small></div>
+        <div class="titlebar-account"><span id="account-name">Checking OpenAI account…</span><small id="account-plan">Connecting to Work &amp; Codex usage</small></div>
         <span class="status-pill" id="status-pill"><i></i><span>Connecting</span></span>
         <button class="icon-action" id="refresh-button" title="Refresh usage" aria-label="Refresh usage">↻</button>
         <button class="button primary hidden" id="signin-button">Sign in</button>
@@ -32,18 +32,18 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg><span>Preferences</span>
           </button>
         </nav>
-        <div class="sidebar-footer"><span class="sidebar-version">Preview build</span><span>ChatGPT / Codex</span></div>
+        <div class="sidebar-footer"><span class="sidebar-version">Preview build</span><span>OpenAI · Work &amp; Codex</span></div>
       </aside>
 
       <main class="page-region">
         <section class="page active" data-page-content="overview">
-          <div class="page-heading"><div><h1>Overview</h1><p>Your AI allowance and widget status at a glance.</p></div></div>
+          <div class="page-heading"><div><h1>Overview</h1><p>Your connected provider usage and widget status at a glance.</p></div></div>
           <div class="dashboard-grid">
             <section class="card usage-card">
-              <div class="card-heading"><div><span class="eyebrow">Current allowance</span><h2>Usage remaining</h2></div><span class="live-label"><i></i>Live</span></div>
+              <div class="card-heading"><div><span class="eyebrow">OpenAI · Work &amp; Codex</span><h2>Usage remaining</h2></div><span class="live-label"><i></i>Live</span></div>
               <div class="snapshot dashboard-snapshot">
-                <div class="snapshot-row" id="preview-five"><span class="snapshot-dot"></span><div><strong>5-hour window</strong><small>Short-term allowance</small></div><b class="preview-value">—</b></div>
-                <div class="snapshot-row" id="preview-weekly"><span class="snapshot-dot"></span><div><strong>Weekly window</strong><small>Long-term allowance</small></div><b class="preview-value">—</b></div>
+                <div class="snapshot-row" id="preview-five"><span class="snapshot-dot"></span><div><strong>5-hour window</strong><small>Work &amp; Codex limit</small></div><b class="preview-value">—</b></div>
+                <div class="snapshot-row" id="preview-weekly"><span class="snapshot-dot"></span><div><strong>Weekly window</strong><small>Work &amp; Codex limit</small></div><b class="preview-value">—</b></div>
               </div>
             </section>
             <section class="card widget-card">
@@ -85,13 +85,13 @@
         </section>
 
         <section class="page" data-page-content="meters">
-          <div class="page-heading"><div><h1>Usage meters</h1><p>Choose which allowances appear and how each one looks.</p></div></div>
+          <div class="page-heading"><div><h1>Usage meters</h1><p>Choose which Work &amp; Codex limits appear and how each one looks.</p></div></div>
           <section class="settings-group meter-settings-group">
             <div class="group-heading"><h2>Visible windows</h2><p>Select the color dot to customize each meter.</p></div>
-            <article class="meter-setting" id="fiveHour-card"><span class="window-badge">5H</span><div class="meter-name"><strong>5-hour limit</strong><small>Fast allowance</small></div><label class="color-control" title="5-hour color"><input type="color" id="fiveHour-color" value="#8EA2FF" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="fiveHour-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="fiveHour-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show 5-hour limit"><input type="checkbox" id="fiveHour-enabled" /><span></span></label></article>
-            <article class="meter-setting" id="weekly-card"><span class="window-badge neutral">7D</span><div class="meter-name"><strong>Weekly limit</strong><small>Long allowance</small></div><label class="color-control" title="Weekly color"><input type="color" id="weekly-color" value="#D8DCE7" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="weekly-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="weekly-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show weekly limit"><input type="checkbox" id="weekly-enabled" /><span></span></label></article>
+            <article class="meter-setting" id="fiveHour-card"><span class="window-badge">5H</span><div class="meter-name"><strong>5-hour limit</strong><small>Short-term Work &amp; Codex usage</small></div><label class="color-control" title="5-hour color"><input type="color" id="fiveHour-color" value="#8EA2FF" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="fiveHour-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="fiveHour-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show 5-hour limit"><input type="checkbox" id="fiveHour-enabled" /><span></span></label></article>
+            <article class="meter-setting" id="weekly-card"><span class="window-badge neutral">7D</span><div class="meter-name"><strong>Weekly limit</strong><small>Long-term Work &amp; Codex usage</small></div><label class="color-control" title="Weekly color"><input type="color" id="weekly-color" value="#D8DCE7" /><span></span></label><div class="segments mini-segments"><label><input type="radio" name="weekly-center" value="logo" /><span>Logo</span></label><label><input type="radio" name="weekly-center" value="percentage" /><span>%</span></label></div><label class="switch" title="Show weekly limit"><input type="checkbox" id="weekly-enabled" /><span></span></label></article>
           </section>
-          <section class="info-card"><span class="info-icon">i</span><div><strong>Remaining, not used</strong><p>The ring and percentage decrease as allowance is consumed, so a full meter means all usage remains.</p></div></section>
+          <section class="info-card"><span class="info-icon">i</span><div><strong>Shows remaining usage</strong><p>The ring and percentage decrease as Work &amp; Codex usage is consumed. This does not track regular ChatGPT message limits.</p></div></section>
         </section>
 
         <section class="page" data-page-content="preferences">
