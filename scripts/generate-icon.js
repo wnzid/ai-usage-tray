@@ -61,4 +61,45 @@ for (let y = 0; y < size; y += 1) {
   }
 }
 
-fs.writeFileSync(path.join(__dirname, '..', 'assets', 'icon.png'), PNG.sync.write(png));
+const pngBuffer = PNG.sync.write(png);
+fs.writeFileSync(path.join(__dirname, '..', 'assets', 'icon.png'), pngBuffer);
+
+function resize(source, targetSize) {
+  const output = new PNG({ width: targetSize, height: targetSize, colorType: 6 });
+  for (let y = 0; y < targetSize; y += 1) {
+    for (let x = 0; x < targetSize; x += 1) {
+      const sourceX = Math.min(source.width - 1, Math.floor((x + .5) * source.width / targetSize));
+      const sourceY = Math.min(source.height - 1, Math.floor((y + .5) * source.height / targetSize));
+      const sourceIndex = (sourceY * source.width + sourceX) * 4;
+      const targetIndex = (y * targetSize + x) * 4;
+      source.data.copy(output.data, targetIndex, sourceIndex, sourceIndex + 4);
+    }
+  }
+  return PNG.sync.write(output);
+}
+
+function createIco(source) {
+  const sizes = [16, 24, 32, 48, 64, 128, 256];
+  const images = sizes.map((targetSize) => ({ targetSize, data: resize(source, targetSize) }));
+  const directorySize = 6 + images.length * 16;
+  const header = Buffer.alloc(directorySize);
+  header.writeUInt16LE(0, 0);
+  header.writeUInt16LE(1, 2);
+  header.writeUInt16LE(images.length, 4);
+  let offset = directorySize;
+  images.forEach(({ targetSize, data }, index) => {
+    const entry = 6 + index * 16;
+    header.writeUInt8(targetSize === 256 ? 0 : targetSize, entry);
+    header.writeUInt8(targetSize === 256 ? 0 : targetSize, entry + 1);
+    header.writeUInt8(0, entry + 2);
+    header.writeUInt8(0, entry + 3);
+    header.writeUInt16LE(1, entry + 4);
+    header.writeUInt16LE(32, entry + 6);
+    header.writeUInt32LE(data.length, entry + 8);
+    header.writeUInt32LE(offset, entry + 12);
+    offset += data.length;
+  });
+  return Buffer.concat([header, ...images.map(({ data }) => data)]);
+}
+
+fs.writeFileSync(path.join(__dirname, '..', 'assets', 'icon.ico'), createIco(png));

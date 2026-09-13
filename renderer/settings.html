@@ -58,7 +58,7 @@
           </div>
           <h2 class="section-heading">Settings</h2>
           <div class="shortcut-grid">
-            <button class="shortcut-card" type="button" data-navigate="connections"><span class="shortcut-icon">⌁</span><span><strong>Connections</strong><small>OpenAI, Claude and Gemini</small></span><b>›</b></button>
+            <button class="shortcut-card" type="button" data-navigate="connections"><span class="shortcut-icon">⌁</span><span><strong>Connections</strong><small>OpenAI live · Claude and Gemini WIP</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="taskbar"><span class="shortcut-icon">▰</span><span><strong>Taskbar widget</strong><small>Position, layout, size and surface</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="meters"><span class="shortcut-icon ring-icon"></span><span><strong>Usage meters</strong><small>Windows, colors and center display</small></span><b>›</b></button>
             <button class="shortcut-card" type="button" data-navigate="preferences"><span class="shortcut-icon">⚙</span><span><strong>Preferences</strong><small>Warnings, startup and refresh</small></span><b>›</b></button>
@@ -66,7 +66,7 @@
         </section>
 
         <section class="page" data-page-content="connections">
-          <div class="page-heading"><div><h1>Connections</h1><p>Choose where AI Usage Tray reads usage information.</p></div></div>
+          <div class="page-heading"><div><h1>Connections</h1><p>OpenAI usage is supported. Other provider work is labeled clearly.</p></div></div>
           <section class="provider-list" aria-label="AI provider connections">
             <article class="provider-card" data-provider="openai">
               <span class="provider-mark provider-openai" aria-hidden="true">O</span>
@@ -81,8 +81,8 @@
             <article class="provider-card" data-provider="claude">
               <span class="provider-mark provider-claude" aria-hidden="true">C</span>
               <div class="provider-main">
-                <div class="provider-title"><h2>Claude</h2><span class="provider-badge desktop">Local app</span></div>
-                <p>Connects to the installed Claude Desktop app or detects Claude Code.</p>
+                <div class="provider-title"><h2>Claude</h2><span class="provider-badge experimental">WIP</span></div>
+                <p>Local app detection and shortcuts only. Automatic usage meters are not available.</p>
                 <div class="provider-status"><i></i><span id="claude-provider-status">Checking this PC</span><small id="claude-provider-detail">Looking for Claude Desktop and Claude Code</small></div>
               </div>
               <div class="provider-actions"><small id="claude-provider-source">Local Claude connection</small><button class="button" id="claude-provider-help" type="button">Usage info</button><button class="button primary" id="claude-provider-action" type="button">Check again</button></div>
@@ -91,8 +91,8 @@
             <article class="provider-card" data-provider="gemini">
               <span class="provider-mark provider-gemini" aria-hidden="true">G</span>
               <div class="provider-main">
-                <div class="provider-title"><h2>Gemini</h2><span class="provider-badge experimental">Experimental</span></div>
-                <p>Opens Gemini’s visible usage controls while a browser companion is designed.</p>
+                <div class="provider-title"><h2>Gemini</h2><span class="provider-badge experimental">WIP</span></div>
+                <p>Manual web shortcut only. Automatic usage meters are not available.</p>
                 <div class="provider-status inactive"><i></i><span id="gemini-provider-status">Web-only for now</span><small id="gemini-provider-detail">Google provides no consumer usage API</small></div>
               </div>
               <div class="provider-actions"><small>Browser companion required</small><button class="button" id="gemini-provider-action" type="button">Open Gemini</button></div>
@@ -114,7 +114,7 @@
 
         <section class="page" data-page-content="claude">
           <button class="back-button" type="button" data-navigate="connections"><span>‹</span> Connections</button>
-          <div class="page-heading provider-page-heading"><div><span class="eyebrow">Provider</span><h1>Claude</h1><p>Manage the local Claude Desktop connection and usage shortcuts.</p></div></div>
+          <div class="page-heading provider-page-heading"><div><span class="eyebrow">Provider · Work in progress</span><h1>Claude</h1><p>Local detection and shortcuts are available; automatic usage is not.</p></div><span class="provider-badge experimental">WIP</span></div>
           <section class="card provider-hero" id="claude-provider-hero">
             <span class="provider-mark provider-claude large" aria-hidden="true">C</span>
             <div><span class="eyebrow">Local connection</span><h2 id="claude-detail-title">Checking for Claude…</h2><p id="claude-detail-copy">Looking for Claude Desktop and Claude Code on this PC.</p></div>

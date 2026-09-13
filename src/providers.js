@@ -118,7 +118,7 @@ function buildProviderSnapshot(usage, claudeCodeDetection, claudeDesktopDetectio
     claude: {
       id: 'claude',
       name: 'Claude',
-      capability: 'Local app',
+      capability: 'WIP',
       source: claude.client === 'desktop'
         ? 'Claude Desktop for Windows'
         : claude.client === 'code' ? 'Claude Code' : 'Claude Desktop or Claude Code',
@@ -134,7 +134,7 @@ function buildProviderSnapshot(usage, claudeCodeDetection, claudeDesktopDetectio
     gemini: {
       id: 'gemini',
       name: 'Gemini',
-      capability: 'Experimental',
+      capability: 'WIP',
       source: 'Browser companion required',
       state: 'inactive',
       label: 'Web-only for now',

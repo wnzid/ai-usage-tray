@@ -11,7 +11,9 @@ test('reports a connected OpenAI provider for ready usage', () => {
   assert.equal(providers.openai.state, 'connected');
   assert.equal(providers.openai.action, 'Refresh');
   assert.equal(providers.claude.state, 'inactive');
+  assert.equal(providers.claude.capability, 'WIP');
   assert.equal(providers.gemini.source, 'Browser companion required');
+  assert.equal(providers.gemini.capability, 'WIP');
 });
 
 test('offers OpenAI connection when signed out', () => {

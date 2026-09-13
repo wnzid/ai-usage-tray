@@ -1,61 +1,174 @@
-# AI Usage Tray
+<div align="center">
+  <img src="assets/app-mark.svg" width="88" alt="AI Usage Tray logo" />
+  <h1>AI Usage Tray</h1>
+  <p><strong>Your OpenAI Work &amp; Codex limits, living quietly in the Windows taskbar.</strong></p>
+  <p>
+    <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&amp;logoColor=white" />
+    <img alt="Release 0.1.0" src="https://img.shields.io/badge/release-v0.1.0-60CDFF" />
+    <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-6ccb8e" />
+    <img alt="Electron" src="https://img.shields.io/badge/Electron-44-47848F?logo=electron&amp;logoColor=white" />
+  </p>
+</div>
 
-A minimalist Windows taskbar app that shows how much of your OpenAI Work & Codex usage remains. The project is currently in its design and development stage; release executables will be produced after the interface is approved.
+AI Usage Tray (AIU) turns usage windows that are normally buried in an account menu into a compact, glanceable Windows widget. It shows how much usage remains, when each window resets, and whether the latest reading is live or cached—without copying browser cookies or asking for an API key.
 
-![Settings preview](docs/settings-preview.png)
+![AI Usage Tray dashboard](docs/settings-preview.png)
 
-## What it does
+## Why AIU?
 
-- Shows independent taskbar gauges for the **5-hour** and **weekly** usage windows.
-- Can live directly inside the Windows taskbar, in the system tray, or in both places.
-- Supports start, center, and end taskbar placement with a fine-position slider.
-- Includes circular, compact-number, and filled progress-bar layouts with adjustable widget and text sizing.
-- Uses independent colors for the 5-hour and weekly meters so they stay legible on different taskbar themes.
-- Can warn at 5% remaining with a red state and optional low-motion breathing effect; zero usage gets a distinct empty state.
-- Keeps an optional app/control icon in the notification tray even while the native taskbar widget is selected.
-- Avoids unnecessary redraws during refreshes and safely repositions after Explorer or display changes.
-- Lets you enable either gauge, both, or neither.
-- Lets you put the OpenAI knot or the remaining percentage in the center of each ring.
-- Drains the ring clockwise as usage is consumed.
-- Opens a compact usage popup when you click a gauge.
-- Supports optional launch at Windows sign-in and configurable refresh intervals.
-- Uses OpenAI's browser-based sign-in. No API key or copied browser cookie is required.
-- Includes a Connections dashboard with live OpenAI state, Claude Desktop and Claude Code detection, and a safe route to Gemini's visible usage controls.
-- Detects the Windows Claude Desktop installation and running/version state without reading its session data, with a dedicated details page, launch shortcut, Usage-settings shortcut, and local-client preferences.
-- Guides first-time users through placement, meter selection, and OpenAI connection, with an option to rerun setup later.
-- Supports confirmed OpenAI disconnect and reconnect through the official local app-server.
-- Keeps the last successful values visible during a failed refresh, retries with bounded backoff, and refreshes after system resume.
-- Shows reset countdowns and a compact diagnostics panel without redrawing unchanged taskbar widgets.
-- Converts service failures into useful, privacy-safe messages and can copy an account-free diagnostic report for support.
-- Respects reduced-motion and Windows high-contrast preferences, with keyboard navigation and a focus-trapped setup dialog.
+When you are deep in a coding session, finding out that a limit is nearly exhausted should not require opening another window. AIU keeps the important numbers beside the clock:
 
-The current OpenAI integration reports the shared Work & Codex usage windows associated with the signed-in ChatGPT plan. It does **not** report API billing credits or the message limits for regular ChatGPT conversations.
+- **At a glance:** independent 5-hour and weekly remaining-usage meters.
+- **Actually in the taskbar:** a native attached widget, not merely another overflow-tray icon.
+- **Your layout:** rings, compact percentages, or progress bars; taskbar, tray, or both.
+- **Calm by default:** unchanged values are not redrawn, so refreshes do not flash or flicker.
+- **Clear under pressure:** optional red and breathing states at 5% remaining; a distinct `EMPTY` state at zero.
+- **Windows-native feel:** Fluent spacing, Segoe UI Variable, system accent color, light/dark mode, high contrast, and reduced-motion support.
 
-The product name stays provider-neutral because Claude and Gemini support is being developed. Claude Desktop/Code detection and the Gemini usage-page route are available in the Connections dashboard, while actual usage meters remain unavailable until each provider offers a stable, safe data path. AI Usage Tray will not copy browser cookies or silently scrape private endpoints.
+## Provider status
+
+| Provider | Status | What works |
+| --- | --- | --- |
+| **OpenAI Work & Codex** | ✅ Supported | Sign-in, 5-hour and weekly windows, reset times, live refresh, saved-data fallback, taskbar/tray meters |
+| **Claude** | 🚧 WIP | Claude Desktop/Code detection and safe shortcuts only; no automatic usage meter |
+| **Gemini** | 🚧 WIP | Manual Gemini web shortcut only; no automatic usage meter |
+
+![Provider connections with WIP labels](docs/connections-preview.png)
+
+AIU currently reads the metered Codex buckets associated with the signed-in ChatGPT account. It does **not** show ordinary ChatGPT conversation-message limits or OpenAI API billing credits.
+
+## Install
+
+Download one of the Windows builds from [Releases](/releases/latest):
+
+- **Installer:** `AI-Usage-Tray-0.1.0-x64.exe`
+- **Portable:** `AI-Usage-Tray-0.1.0-portable.exe`
+
+The first-run guide lets you choose placement, visible meters, and account connection. The official `@openai/codex` runtime is bundled, so users do not need to install the Codex CLI separately.
+
+> [!NOTE]
+> The first community build is unsigned. Windows SmartScreen may show an “unrecognized app” warning. Verify the SHA-256 checksums included with the release before running it.
+
+## What the widget can look like
+
+### Placement
+
+- **Taskbar:** attached beside a safe Windows taskbar region.
+- **Tray:** one icon per enabled meter.
+- **Both:** persistent taskbar information with quick tray access.
+- **Start, center, or end:** with a fine offset control for coexistence with other taskbar tools.
+
+### Display styles
+
+- Circular remaining-usage gauges
+- Compact labeled percentages
+- Filled progress bars
+- Independent meter colors
+- Adjustable widget and text size
+- Transparent, glass, or solid surfaces
+- Optional `5H` and `7D` labels
+
+Click a meter for the compact flyout. Right-click the tray icon for settings, refresh, and quit controls.
+
+## How it works
+
+```mermaid
+flowchart LR
+  A[OpenAI browser sign-in] --> B[Bundled Codex app-server]
+  B --> C[Account and rate-limit events]
+  C --> D[Normalized remaining usage]
+  D --> E[Taskbar widget]
+  D --> F[Tray gauges]
+  D --> G[Fluent dashboard]
+```
+
+AIU communicates with the bundled local Codex app-server. It uses the documented account and rate-limit methods, listens for account/rate-limit updates, and converts `usedPercent` into remaining usage. Refresh failures retain the last successful values and retry with bounded backoff.
+
+## Privacy and security
+
+- Authentication happens through OpenAI’s browser-based flow.
+- Credentials remain in the Codex credential store.
+- AIU stores display preferences—not copied cookies or passwords.
+- Diagnostics deliberately omit account email, tokens, raw service errors, and executable paths.
+- Claude detection reads installation/running metadata only and never reads Claude session files.
+- Gemini is never scraped in the background.
+
+## Troubleshooting
+
+### The app appears to close immediately
+
+AIU keeps running after its settings window closes. Look for the **AIU** icon in the notification area, then right-click it and choose **Settings**. Only the tray menu’s **Quit** action exits the process.
+
+### The taskbar widget falls back to the tray
+
+Open **Connections → Connection diagnostics** and check Taskbar attachment. Restarting Windows Explorer or changing display scaling can temporarily move the widget; AIU automatically attempts to reattach safely.
+
+### Usage says “Saved data”
+
+The latest refresh failed, but AIU kept the last valid values visible. It retries automatically using a bounded delay and refreshes again after Windows resumes from sleep.
+
+### Claude or Gemini has no percentage
+
+Those providers are explicitly **WIP**. Detection and shortcuts do not imply that a supported usage-data connection exists.
 
 ## Development
 
-Requires Node.js 22 or newer on Windows 10/11.
+Requirements: Windows 10/11 and Node.js 22 or newer.
 
 ```powershell
+git clone <repository-url>
+cd ai-usage-tray
 npm install
 npm start
 ```
 
-Run the tests:
+Run the test suite:
 
 ```powershell
 npm test
 ```
 
-When the design is finalized, `npm run dist` will produce the installer and portable Windows release.
+Build the unpacked app, or create both Windows releases:
 
-The official `@openai/codex` package is bundled so end users do not need to install the Codex CLI separately.
+```powershell
+npm run pack
+npm run dist
+```
 
-## Privacy
+Generated artifacts are written to `release/` and intentionally excluded from Git.
 
-Authentication and usage requests are handled by the local Codex app-server. Credentials remain in Codex's local credential store. AI Usage Tray stores only display preferences in its Electron user-data folder.
+## Project structure
+
+```text
+src/
+  main.js             Electron lifecycle, windows, taskbar, tray, refresh
+  codex-client.js     Codex app-server JSON-RPC client
+  usage.js            Rate-limit normalization
+  settings-store.js   Validated local preferences
+  providers.js        Provider capability and detection model
+renderer/
+  settings.*          Fluent dashboard and first-run setup
+  taskbar.*           Attached taskbar widget
+  details.*           Compact usage flyout
+scripts/
+  attach-taskbar.ps1  Windows taskbar attachment helper
+tests/                Node test suite
+```
+
+## Roadmap
+
+- [x] OpenAI Work & Codex usage meters
+- [x] Native Windows taskbar attachment and tray fallback
+- [x] Fluent settings dashboard and first-run setup
+- [x] Flicker-resistant refresh, retry, and diagnostics
+- [ ] Stable Claude usage integration if Anthropic exposes a supported consumer interface
+- [ ] Stable Gemini usage integration if Google exposes a supported consumer interface
+- [ ] Signed Windows releases and automatic updates
+
+## Disclaimer
+
+AI Usage Tray is an independent open-source project. It is not affiliated with or endorsed by OpenAI, Anthropic, Google, or Microsoft. Product names and trademarks belong to their respective owners.
 
 ## License
 
-MIT. Bundled third-party components retain their respective licenses; Codex is distributed under Apache-2.0.
+[MIT](LICENSE). Bundled third-party components retain their own licenses; Codex is distributed under Apache-2.0.
