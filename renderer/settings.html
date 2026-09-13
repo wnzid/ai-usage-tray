@@ -81,11 +81,11 @@
             <article class="provider-card" data-provider="claude">
               <span class="provider-mark provider-claude" aria-hidden="true">C</span>
               <div class="provider-main">
-                <div class="provider-title"><h2>Claude</h2><span class="provider-badge experimental">Experimental</span></div>
-                <p>Prepares a local Claude Code connection without copying browser cookies.</p>
-                <div class="provider-status"><i></i><span id="claude-provider-status">Checking this PC</span><small id="claude-provider-detail">Looking for a local Claude Code installation</small></div>
+                <div class="provider-title"><h2>Claude</h2><span class="provider-badge desktop">Local app</span></div>
+                <p>Connects to the installed Claude Desktop app or detects Claude Code.</p>
+                <div class="provider-status"><i></i><span id="claude-provider-status">Checking this PC</span><small id="claude-provider-detail">Looking for Claude Desktop and Claude Code</small></div>
               </div>
-              <div class="provider-actions"><small>Local Claude Code</small><button class="button" id="claude-provider-help" type="button">How it works</button><button class="button" id="claude-provider-action" type="button">Check again</button></div>
+              <div class="provider-actions"><small id="claude-provider-source">Local Claude connection</small><button class="button" id="claude-provider-help" type="button">Usage info</button><button class="button primary" id="claude-provider-action" type="button">Check again</button></div>
             </article>
 
             <article class="provider-card" data-provider="gemini">
@@ -110,6 +110,39 @@
             <div class="visually-hidden" id="copy-diagnostics-result" role="status" aria-live="polite"></div>
           </section>
           <section class="info-card privacy-note"><span class="info-icon">i</span><div><strong>Your sessions stay yours</strong><p>AI Usage Tray uses documented or user-visible connection methods. It does not copy browser cookies or call private account endpoints in the background.</p></div></section>
+        </section>
+
+        <section class="page" data-page-content="claude">
+          <button class="back-button" type="button" data-navigate="connections"><span>‹</span> Connections</button>
+          <div class="page-heading provider-page-heading"><div><span class="eyebrow">Provider</span><h1>Claude</h1><p>Manage the local Claude Desktop connection and usage shortcuts.</p></div></div>
+          <section class="card provider-hero" id="claude-provider-hero">
+            <span class="provider-mark provider-claude large" aria-hidden="true">C</span>
+            <div><span class="eyebrow">Local connection</span><h2 id="claude-detail-title">Checking for Claude…</h2><p id="claude-detail-copy">Looking for Claude Desktop and Claude Code on this PC.</p></div>
+            <span class="provider-state-pill" id="claude-detail-state"><i></i><span>Checking</span></span>
+          </section>
+          <section class="settings-group provider-actions-group">
+            <div class="group-heading"><div><h2>Quick actions</h2><p>Open Claude or manage the shared plan limit.</p></div></div>
+            <div class="provider-action-grid">
+              <button class="shortcut-card" id="claude-open-app" type="button"><span class="shortcut-icon">C</span><span><strong>Open Claude Desktop</strong><small>Launch the installed Windows app</small></span><b>›</b></button>
+              <button class="shortcut-card" id="claude-open-usage" type="button"><span class="shortcut-icon ring-icon"></span><span><strong>View Claude usage</strong><small>Open Anthropic’s Usage settings</small></span><b>›</b></button>
+            </div>
+          </section>
+          <section class="settings-group">
+            <div class="group-heading"><div><h2>Connection settings</h2><p>These settings affect local detection only.</p></div></div>
+            <label class="setting-row interactive-row"><div class="setting-copy"><strong>Detect Claude automatically</strong><small>Check for Claude Desktop and Claude Code when AIU starts.</small></div><span class="switch"><input type="checkbox" id="claude-auto-detect" /><span></span></span></label>
+            <div class="setting-row"><div class="setting-copy"><strong>Preferred local client</strong><small>Choose which Claude app AIU should prioritize in future integrations.</small></div><label class="select-control row-control"><select id="claude-preferred-client"><option value="auto">Automatic</option><option value="desktop">Claude Desktop</option><option value="code">Claude Code</option></select></label></div>
+            <div class="setting-row"><div class="setting-copy"><strong>Refresh installation status</strong><small>Check version, running state, and Claude Code availability.</small></div><button class="button row-button" id="claude-check-now" type="button">Check now</button></div>
+          </section>
+          <section class="settings-group provider-capabilities">
+            <div class="group-heading"><div><h2>Detected capabilities</h2><p>AIU never reads Claude session files or browser cookies.</p></div></div>
+            <div class="diagnostic-grid">
+              <div><span>Desktop app</span><strong id="claude-desktop-state">—</strong></div>
+              <div><span>Desktop version</span><strong id="claude-desktop-version">—</strong></div>
+              <div><span>Claude Code</span><strong id="claude-code-state">—</strong></div>
+              <div><span>Automatic usage meter</span><strong>Not available</strong></div>
+            </div>
+          </section>
+          <section class="info-card"><span class="info-icon">i</span><div><strong>One shared Claude limit</strong><p>Claude web, Desktop, and Claude Code count toward the same plan usage. Anthropic currently shows that information in Usage settings but does not expose a supported consumer rate-limit interface for AIU to read automatically.</p></div></section>
         </section>
 
         <section class="page" data-page-content="taskbar">

@@ -146,6 +146,7 @@ button:focus-visible, select:focus-visible, input[type="range"]:focus-visible { 
 .provider-title h2 { margin: 0; font-size: 16px; line-height: 22px; font-weight: 600; }
 .provider-badge { min-height: 20px; display: inline-flex; align-items: center; padding: 0 7px; border: 1px solid var(--stroke); border-radius: 10px; color: var(--text-secondary); background: var(--control-fill); font-size: 10px; line-height: 16px; }
 .provider-badge.supported { color: var(--success); border-color: color-mix(in srgb, var(--success) 36%, transparent); background: color-mix(in srgb, var(--success) 9%, transparent); }
+.provider-badge.desktop { color: #e8aa7b; border-color: color-mix(in srgb, #e8aa7b 36%, transparent); background: color-mix(in srgb, #e8aa7b 9%, transparent); }
 .provider-badge.experimental { color: #f0b45a; border-color: color-mix(in srgb, #f0b45a 36%, transparent); background: color-mix(in srgb, #f0b45a 9%, transparent); }
 .provider-main > p { margin: 2px 0 9px; color: var(--text-secondary); line-height: 17px; }
 .provider-status { display: grid; grid-template-columns: 8px auto 1fr; align-items: center; gap: 7px; }
@@ -168,6 +169,24 @@ button:focus-visible, select:focus-visible, input[type="range"]:focus-visible { 
 .diagnostic-grid span { color: var(--text-tertiary); line-height: 16px; }
 .diagnostic-grid strong { margin-top: 2px; line-height: 18px; font-weight: 600; }
 .diagnostic-error { padding: 10px 16px; border-top: 1px solid color-mix(in srgb, var(--danger) 28%, transparent); color: var(--danger); background: color-mix(in srgb, var(--danger) 7%, transparent); line-height: 17px; user-select: text; }
+
+/* Provider details */
+.back-button { min-height: 30px; margin: -4px 0 8px; padding: 0; border: 0; color: var(--accent); background: transparent; cursor: pointer; }
+.back-button span { margin-right: 6px; font-size: 20px; vertical-align: -1px; }
+.provider-page-heading { min-height: 58px; margin-bottom: 14px; }
+.provider-hero { min-height: 116px; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 16px; padding: 18px; }
+.provider-mark.large { width: 54px; height: 54px; border-radius: 11px; font-size: 21px; }
+.provider-hero h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+.provider-hero p { margin: 3px 0 0; color: var(--text-secondary); line-height: 18px; }
+.provider-state-pill { min-height: 28px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid var(--stroke); border-radius: 14px; color: var(--text-secondary); background: var(--control-fill); }
+.provider-state-pill i { width: 7px; height: 7px; border-radius: 50%; background: var(--text-tertiary); }
+.provider-state-pill[data-state="connected"] i, .provider-state-pill[data-state="available"] i { background: var(--success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--success) 12%, transparent); }
+.provider-state-pill[data-state="checking"] i { background: #f0b45a; animation: status-pulse 1s ease-in-out infinite; }
+.provider-actions-group, .provider-capabilities { margin-top: 12px; }
+.provider-action-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; }
+.provider-action-grid .shortcut-card { min-height: 74px; }
+.shortcut-card:disabled { opacity: .43; cursor: default; }
+.shortcut-card:disabled:hover { background: var(--card-fill); }
 
 /* First-run setup */
 .onboarding-layer { position: fixed; z-index: 50; inset: 48px 0 0; display: grid; place-items: center; padding: 28px; background: rgba(0, 0, 0, .46); backdrop-filter: blur(18px); }

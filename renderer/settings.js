@@ -140,7 +140,31 @@ function renderProviders() {
     action.textContent = provider.action;
     action.disabled = provider.state === 'checking';
     if (id === 'openai') $('#openai-provider-disconnect').classList.toggle('hidden', provider.state !== 'connected');
+    if (id === 'claude') $('#claude-provider-source').textContent = provider.source;
   }
+}
+
+function renderClaude() {
+  const provider = currentState.providers?.claude;
+  if (!provider) return;
+  const connected = provider.state === 'connected' || provider.state === 'available';
+  $('#claude-provider-hero').dataset.state = provider.state;
+  $('#claude-detail-title').textContent = provider.label;
+  $('#claude-detail-copy').textContent = connected
+    ? `${provider.detail}. Local detection is ready; usage remains user-visible only.`
+    : provider.detail;
+  $('#claude-detail-state').dataset.state = provider.state;
+  $('#claude-detail-state').querySelector('span').textContent = provider.state === 'connected'
+    ? 'Detected'
+    : provider.state === 'checking' ? 'Checking' : 'Not detected';
+  $('#claude-open-app').disabled = !provider.desktop.detected;
+  $('#claude-desktop-state').textContent = provider.desktop.detected
+    ? (provider.desktop.running ? 'Running' : 'Installed')
+    : 'Not detected';
+  $('#claude-desktop-version').textContent = provider.desktop.version || 'Unavailable';
+  $('#claude-code-state').textContent = provider.code.detected ? 'Detected' : 'Not detected';
+  $('#claude-auto-detect').checked = currentState.settings.providers.claude.autoDetect;
+  $('#claude-preferred-client').value = currentState.settings.providers.claude.preferredClient;
 }
 
 function renderDiagnostics() {
@@ -316,6 +340,7 @@ function render() {
   renderStatus();
   renderAccount();
   renderProviders();
+  renderClaude();
   renderOnboarding();
   renderDiagnostics();
 
@@ -374,6 +399,12 @@ function settingsFromForm() {
     },
     refreshMinutes: Number($('#refresh-minutes').value),
     launchAtLogin: $('#launch-at-login').checked,
+    providers: {
+      claude: {
+        autoDetect: $('#claude-auto-detect').checked,
+        preferredClient: $('#claude-preferred-client').value,
+      },
+    },
     taskbar: {
       position: $('#taskbar-position').value,
       layout: $('#taskbar-layout').value,
@@ -420,8 +451,14 @@ $('#refresh-button').addEventListener('click', () => window.usageTray.refresh())
 $('#signin-button').addEventListener('click', () => window.usageTray.signIn());
 $('#openai-provider-action').addEventListener('click', () => window.usageTray.providerAction('openai'));
 $('#openai-provider-disconnect').addEventListener('click', () => window.usageTray.providerAction('openai-disconnect'));
-$('#claude-provider-action').addEventListener('click', () => window.usageTray.providerAction('claude-detect'));
+$('#claude-provider-action').addEventListener('click', () => {
+  if (currentState.providers?.claude?.action === 'View') activatePage('claude', true);
+  else window.usageTray.providerAction('claude-detect');
+});
 $('#claude-provider-help').addEventListener('click', () => window.usageTray.providerAction('claude-help'));
+$('#claude-open-app').addEventListener('click', () => window.usageTray.providerAction('claude-open'));
+$('#claude-open-usage').addEventListener('click', () => window.usageTray.providerAction('claude-usage'));
+$('#claude-check-now').addEventListener('click', () => window.usageTray.providerAction('claude-detect'));
 $('#gemini-provider-action').addEventListener('click', () => window.usageTray.providerAction('gemini-open'));
 $('#run-onboarding').addEventListener('click', openOnboarding);
 $('#copy-diagnostics').addEventListener('click', async () => {

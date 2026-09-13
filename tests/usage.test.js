@@ -53,6 +53,9 @@ test('sanitizes settings and preserves safe choices', () => {
     },
     refreshMinutes: 15,
     launchAtLogin: true,
+    providers: {
+      claude: { autoDetect: true, preferredClient: 'auto' },
+    },
   });
 
   assert.deepEqual(value, {
@@ -66,6 +69,9 @@ test('sanitizes settings and preserves safe choices', () => {
     },
     refreshMinutes: 15,
     launchAtLogin: true,
+    providers: {
+      claude: { autoDetect: true, preferredClient: 'auto' },
+    },
     taskbar: {
       position: 'start',
       layout: 'gauges',
@@ -86,6 +92,7 @@ test('uses the intended default center displays', () => {
   assert.equal(value.indicators.weekly.center, 'percentage');
   assert.equal(value.displayLocation, 'taskbar');
   assert.equal(value.taskbar.position, 'start');
+  assert.deepEqual(value.providers.claude, { autoDetect: true, preferredClient: 'auto' });
 });
 
 test('preserves completed first-run setup', () => {
@@ -131,4 +138,12 @@ test('sanitizes taskbar customization controls', () => {
     breathing: false,
     offset: -240,
   });
+});
+
+test('sanitizes Claude provider preferences', () => {
+  const selected = sanitizeSettings({ providers: { claude: { autoDetect: false, preferredClient: 'desktop' } } });
+  assert.deepEqual(selected.providers.claude, { autoDetect: false, preferredClient: 'desktop' });
+
+  const invalid = sanitizeSettings({ providers: { claude: { preferredClient: 'browser-cookie' } } });
+  assert.equal(invalid.providers.claude.preferredClient, 'auto');
 });

@@ -5,7 +5,7 @@ const path = require('node:path');
 const { CodexClient } = require('./codex-client');
 const { buildDiagnosticReport } = require('./diagnostics');
 const { publicError } = require('./errors');
-const { PROVIDER_URLS, buildProviderSnapshot, detectExecutable } = require('./providers');
+const { PROVIDER_URLS, buildProviderSnapshot, detectClaudeDesktop, detectExecutable } = require('./providers');
 const { normalDelay, retryDelay } = require('./refresh-policy');
 const { buildUsageSnapshot } = require('./usage');
 const { SettingsStore } = require('./settings-store');
@@ -15,7 +15,7 @@ const isDemo = process.argv.includes('--demo');
 const captureArgument = process.argv.find((argument) => argument.startsWith('--capture-preview='));
 const capturePath = captureArgument?.slice('--capture-preview='.length);
 const capturePageArgument = process.argv.find((argument) => argument.startsWith('--capture-page='));
-const capturePage = ['overview', 'connections', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
+const capturePage = ['overview', 'connections', 'claude', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
   ? capturePageArgument.slice('--capture-page='.length)
   : 'overview';
 const backgroundLaunch = process.argv.includes('--background');
@@ -55,7 +55,10 @@ let taskbarAttachment = 'off';
 let taskbarPlacement = null;
 let taskbarAttachRunning = false;
 let systemAccent = '#60CDFF';
-let claudeDetection = isDemo ? { kind: 'missing' } : { kind: 'checking' };
+let claudeCodeDetection = isDemo ? { kind: 'missing' } : { kind: 'checking' };
+let claudeDesktopDetection = isDemo
+  ? { kind: 'detected', running: true, version: '1.52386.3', executablePath: null }
+  : { kind: 'checking' };
 const trays = new Map();
 const trayFingerprints = new Map();
 
@@ -77,7 +80,13 @@ function publicState() {
   const visibleError = publicError(lastError);
   return {
     usage,
-    providers: buildProviderSnapshot(usage, claudeDetection, { lastError }),
+    providers: buildProviderSnapshot(
+      usage,
+      claudeCodeDetection,
+      claudeDesktopDetection,
+      { lastError },
+      settingsStore.value.providers,
+    ),
     settings: settingsStore.value,
     refreshing,
     error: visibleError?.message || null,
@@ -504,12 +513,21 @@ function applyLoginSetting() {
 }
 
 function saveSettings(next) {
+  const previousClaudeSettings = settingsStore.value.providers.claude;
   const saved = settingsStore.update(next);
   applyLoginSetting();
   setPolling();
   rebuildTrays();
   rebuildTaskbarWidget();
   broadcast();
+  if (saved.providers.claude.autoDetect
+    && (!previousClaudeSettings.autoDetect || previousClaudeSettings.preferredClient !== saved.providers.claude.preferredClient)) {
+    checkClaudeClients();
+  } else if (!saved.providers.claude.autoDetect) {
+    claudeCodeDetection = { kind: 'disabled' };
+    claudeDesktopDetection = { kind: 'disabled' };
+    broadcast();
+  }
   return saved;
 }
 
@@ -582,13 +600,26 @@ async function disconnectOpenAI() {
   }
 }
 
-async function checkClaudeCode() {
+async function checkClaudeClients() {
   if (isDemo) return publicState();
-  claudeDetection = { kind: 'checking' };
+  claudeCodeDetection = { kind: 'checking' };
+  claudeDesktopDetection = { kind: 'checking' };
   broadcast();
-  claudeDetection = await detectExecutable(execFile);
+  [claudeCodeDetection, claudeDesktopDetection] = await Promise.all([
+    detectExecutable(execFile),
+    detectClaudeDesktop(execFile),
+  ]);
   broadcast();
   return publicState();
+}
+
+async function launchClaudeDesktop() {
+  const executable = claudeDesktopDetection?.executablePath;
+  if (!executable) return { ok: false, error: 'Claude Desktop is not detected.' };
+  const error = await shell.openPath(executable);
+  if (error) return { ok: false, error: 'Claude Desktop could not be opened.' };
+  setTimeout(checkClaudeClients, 1500);
+  return { ok: true };
 }
 
 async function providerAction(action) {
@@ -596,7 +627,12 @@ async function providerAction(action) {
     return usage.kind === 'signedOut' ? beginLogin() : refreshUsage();
   }
   if (action === 'openai-disconnect') return disconnectOpenAI();
-  if (action === 'claude-detect') return checkClaudeCode();
+  if (action === 'claude-detect') return checkClaudeClients();
+  if (action === 'claude-open') return launchClaudeDesktop();
+  if (action === 'claude-usage') {
+    await shell.openExternal(PROVIDER_URLS.claudeUsage);
+    return { ok: true };
+  }
   if (action === 'claude-help') {
     await shell.openExternal(PROVIDER_URLS.claudeHelp);
     return { ok: true };
@@ -658,7 +694,12 @@ if (!hasLock) {
       rebuildTaskbarWidget();
     }
     refreshUsage();
-    checkClaudeCode();
+    if (settingsStore.value.providers.claude.autoDetect) checkClaudeClients();
+    else {
+      claudeCodeDetection = { kind: 'disabled' };
+      claudeDesktopDetection = { kind: 'disabled' };
+      broadcast();
+    }
     nativeTheme.on('updated', () => { updateSettingsWindowChrome(); rebuildTrays(); broadcast(); });
     systemPreferences.on('accent-color-changed', (_event, color) => {
       systemAccent = readSystemAccent(color);

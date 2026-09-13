@@ -12,6 +12,9 @@ const DEFAULT_SETTINGS = Object.freeze({
   },
   refreshMinutes: 2,
   launchAtLogin: false,
+  providers: {
+    claude: { autoDetect: true, preferredClient: 'auto' },
+  },
   taskbar: {
     position: 'start',
     layout: 'gauges',
@@ -63,6 +66,16 @@ function sanitizeSettings(value = {}) {
       ? Number(value.refreshMinutes)
       : DEFAULT_SETTINGS.refreshMinutes,
     launchAtLogin: Boolean(value.launchAtLogin),
+    providers: {
+      claude: {
+        autoDetect: typeof value.providers?.claude?.autoDetect === 'boolean'
+          ? value.providers.claude.autoDetect
+          : DEFAULT_SETTINGS.providers.claude.autoDetect,
+        preferredClient: ['auto', 'desktop', 'code'].includes(value.providers?.claude?.preferredClient)
+          ? value.providers.claude.preferredClient
+          : DEFAULT_SETTINGS.providers.claude.preferredClient,
+      },
+    },
     taskbar: {
       position: positions.includes(value.taskbar?.position) ? value.taskbar.position : DEFAULT_SETTINGS.taskbar.position,
       layout: layouts.includes(value.taskbar?.layout) ? value.taskbar.layout : DEFAULT_SETTINGS.taskbar.layout,
