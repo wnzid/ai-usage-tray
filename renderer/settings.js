@@ -343,6 +343,8 @@ function render() {
   renderClaude();
   renderOnboarding();
   renderDiagnostics();
+  $('.sidebar-version').textContent = `Version ${currentState.appVersion || 'Preview'}`;
+  $('#about-version').textContent = `Version ${currentState.appVersion || 'Preview'}`;
 
   document.querySelector(`input[name="display-location"][value="${settings.displayLocation}"]`).checked = true;
   $('#taskbar-position').value = settings.taskbar.position;
@@ -460,6 +462,8 @@ $('#claude-open-app').addEventListener('click', () => window.usageTray.providerA
 $('#claude-open-usage').addEventListener('click', () => window.usageTray.providerAction('claude-usage'));
 $('#claude-check-now').addEventListener('click', () => window.usageTray.providerAction('claude-detect'));
 $('#gemini-provider-action').addEventListener('click', () => window.usageTray.providerAction('gemini-open'));
+$('#about-source').addEventListener('click', () => window.usageTray.providerAction('project-source'));
+$('#about-license').addEventListener('click', () => window.usageTray.providerAction('project-license'));
 $('#run-onboarding').addEventListener('click', openOnboarding);
 $('#copy-diagnostics').addEventListener('click', async () => {
   const button = $('#copy-diagnostics');

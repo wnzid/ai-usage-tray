@@ -4,8 +4,8 @@
   <p><strong>Your OpenAI Work &amp; Codex limits, living quietly in the Windows taskbar.</strong></p>
   <p>
     <img alt="Windows 10 and 11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows11&amp;logoColor=white" />
-    <img alt="Release 0.1.0" src="https://img.shields.io/badge/release-v0.1.0-60CDFF" />
-    <img alt="MIT License" src="https://img.shields.io/badge/license-MIT-6ccb8e" />
+    <img alt="Release 0.1.1" src="https://img.shields.io/badge/release-v0.1.1-60CDFF" />
+    <img alt="MPL 2.0 License" src="https://img.shields.io/badge/license-MPL--2.0-6ccb8e" />
     <img alt="Electron" src="https://img.shields.io/badge/Electron-44-47848F?logo=electron&amp;logoColor=white" />
   </p>
 </div>
@@ -41,8 +41,8 @@ AIU currently reads the metered Codex buckets associated with the signed-in Chat
 
 Download one of the Windows builds from [Releases](/releases/latest):
 
-- **Installer:** `AI-Usage-Tray-0.1.0-x64.exe`
-- **Portable:** `AI-Usage-Tray-0.1.0-portable.exe`
+- **Installer:** `AI-Usage-Tray-0.1.1-x64.exe`
+- **Portable:** `AI-Usage-Tray-0.1.1-portable.exe`
 
 The first-run guide lets you choose placement, visible meters, and account connection. The official `@openai/codex` runtime is bundled, so users do not need to install the Codex CLI separately.
 
@@ -171,4 +171,6 @@ AI Usage Tray is an independent open-source project. It is not affiliated with o
 
 ## License
 
-[MIT](LICENSE). Bundled third-party components retain their own licenses; Codex is distributed under Apache-2.0.
+AI Usage Tray is licensed under the [Mozilla Public License 2.0](LICENSE). Changes to MPL-covered source files must remain available under MPL-2.0 when distributed; separate files in a larger work may use other terms.
+
+Bundled third-party components retain their own licenses. See [Third-party notices](THIRD_PARTY_NOTICES.md), including the Apache-2.0-licensed Codex runtime.

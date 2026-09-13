@@ -34,6 +34,9 @@
           <button class="nav-item" type="button" data-page="preferences">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1z"/></svg><span>Preferences</span>
           </button>
+          <button class="nav-item" type="button" data-page="about">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v6M12 7.5h.01"/></svg><span>About</span>
+          </button>
         </nav>
         <div class="sidebar-footer"><span class="sidebar-version">Preview build</span><span>OpenAI · Work &amp; Codex</span></div>
       </aside>
@@ -194,6 +197,21 @@
             <div class="setting-row"><div class="setting-copy"><strong>Run initial setup again</strong><small>Revisit placement, meters, and account connection.</small></div><button class="button row-button" id="run-onboarding" type="button">Open setup</button></div>
           </section>
           <p class="closing-note">Closing this window keeps the widget running. Use the tray menu to quit.</p>
+        </section>
+
+        <section class="page" data-page-content="about">
+          <div class="page-heading"><div><h1>About</h1><p>Version, source code, and licensing information.</p></div></div>
+          <section class="card provider-hero">
+            <span class="provider-mark large" aria-hidden="true">AIU</span>
+            <div><span class="eyebrow">AI Usage Tray</span><h2>Usage at a glance</h2><p>Independent, open-source software for Windows.</p></div>
+            <span class="provider-state-pill"><span id="about-version">Version —</span></span>
+          </section>
+          <section class="settings-group">
+            <div class="group-heading"><div><h2>Open source</h2><p>The corresponding source for this executable is available on GitHub.</p></div></div>
+            <div class="setting-row"><div class="setting-copy"><strong>Source code</strong><small>View, audit, and contribute to AI Usage Tray.</small></div><button class="button row-button" id="about-source" type="button">Open GitHub</button></div>
+            <div class="setting-row"><div class="setting-copy"><strong>Mozilla Public License 2.0</strong><small>Distributed without warranty under MPL-2.0.</small></div><button class="button row-button" id="about-license" type="button">View license</button></div>
+          </section>
+          <section class="info-card"><span class="info-icon">i</span><div><strong>Third-party software</strong><p>Bundled components retain their own licenses. Notices are included with every build and in the source repository.</p></div></section>
         </section>
       </main>
 

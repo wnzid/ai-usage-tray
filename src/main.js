@@ -11,11 +11,16 @@ const { buildUsageSnapshot } = require('./usage');
 const { SettingsStore } = require('./settings-store');
 const { createGaugeImage } = require('./tray-gauge');
 
+const PROJECT_URLS = {
+  source: 'https://github.com/wnzid/ai-usage-tray',
+  license: 'https://github.com/wnzid/ai-usage-tray/blob/main/LICENSE',
+};
+
 const isDemo = process.argv.includes('--demo');
 const captureArgument = process.argv.find((argument) => argument.startsWith('--capture-preview='));
 const capturePath = captureArgument?.slice('--capture-preview='.length);
 const capturePageArgument = process.argv.find((argument) => argument.startsWith('--capture-page='));
-const capturePage = ['overview', 'connections', 'claude', 'taskbar', 'meters', 'preferences'].includes(capturePageArgument?.slice('--capture-page='.length))
+const capturePage = ['overview', 'connections', 'claude', 'taskbar', 'meters', 'preferences', 'about'].includes(capturePageArgument?.slice('--capture-page='.length))
   ? capturePageArgument.slice('--capture-page='.length)
   : 'overview';
 const backgroundLaunch = process.argv.includes('--background');
@@ -639,6 +644,14 @@ async function providerAction(action) {
   }
   if (action === 'gemini-open') {
     await shell.openExternal(PROVIDER_URLS.geminiUsage);
+    return { ok: true };
+  }
+  if (action === 'project-source') {
+    await shell.openExternal(PROJECT_URLS.source);
+    return { ok: true };
+  }
+  if (action === 'project-license') {
+    await shell.openExternal(PROJECT_URLS.license);
     return { ok: true };
   }
   return { ok: false, error: 'Unknown provider action.' };

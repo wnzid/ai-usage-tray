@@ -2,6 +2,18 @@
 
 All notable changes to AI Usage Tray are documented here.
 
+## [0.1.1] - 2026-09-13
+
+### Changed
+
+- Licensed new releases and source changes under the Mozilla Public License 2.0.
+- Added in-app source and license information plus bundled third-party notices.
+
+### License history
+
+- Version 0.1.0 remains available under the MIT License under which it was originally released.
+- Version 0.1.1 and later contributions are distributed under MPL-2.0.
+
 ## [0.1.0] - 2026-09-13
 
 ### Added
